@@ -1,4 +1,4 @@
-# ADR-001: Anaplan Export Format Support
+# ADR-002: Anaplan Export Format Support
 
 ## Status
 Accepted
