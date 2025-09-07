@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 uv sync
 
 # Add new dependencies
-uv add pandas typer rich  # runtime dependencies
+uv add polars typer rich  # runtime dependencies
 uv add --dev pytest ruff  # development dependencies
 
 # Format code (run after any Python file changes)
@@ -55,7 +55,7 @@ The tool follows a pipeline architecture with these key components:
 
 ### 3. Comparison Engine (`anaplan_diff/comparator.py`)
 - **ComparisonResult dataclass**: Structured diff results ✅ Defined
-- **DataComparator class**: Core comparison logic using pandas merge operations ⚠️ TODO
+- **DataComparator class**: Core comparison logic using polars merge operations ⚠️ TODO
 - Identifies unchanged, changed, added, and removed rows based on dimension keys ⚠️ TODO
 
 ### 4. Terminal Output (`anaplan_diff/formatter.py`)
@@ -88,7 +88,7 @@ The tool follows a pipeline architecture with these key components:
 ## Key Technical Decisions
 
 **Build System**: Hatchling (modern Python packaging) + UV (package management)
-**Dependencies**: pandas (data handling), typer (CLI), rich (output), chardet (encoding detection)
+**Dependencies**: polars (data handling), typer (CLI), rich (output), chardet (encoding detection)
 **Package Management**: UV with lock file for reproducible builds (uv.lock)
 **Package Structure**: Standard Python package with console script entry point
 **Testing**: pytest with basic class instantiation tests
@@ -99,7 +99,7 @@ The tool follows a pipeline architecture with these key components:
 
 **Planned Auto-detection Heuristics**:
 - Dimensions: `dtype == 'object'` OR low cardinality OR Anaplan keywords
-- CSV format: chardet for encoding, pandas inference for delimiters  
+- CSV format: chardet for encoding, polars inference for delimiters  
 - Headers: Skip Anaplan page selector lines if present
 
 ## Error Handling Patterns
