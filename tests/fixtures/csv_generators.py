@@ -7,12 +7,12 @@ that can be used to test the CLI tool's functionality.
 
 import io
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 
 def generate_basic_csv(
-    data: List[List[Any]],
-    headers: Optional[List[str]] = None,
+    data: list[list[Any]],
+    headers: Optional[list[str]] = None,
     encoding: str = "utf-8",
     delimiter: str = ",",
     add_bom: bool = False,

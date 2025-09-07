@@ -5,10 +5,8 @@ These tests validate the complete pipeline from CSV generation through
 CLI execution to output validation.
 """
 
-import pytest
-from pathlib import Path
 
-from tests.fixtures.csv_generators import TestScenarios
+import pytest
 
 
 class TestCLIBasicFunctionality:

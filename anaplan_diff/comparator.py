@@ -2,33 +2,32 @@
 Core comparison logic for CSV data.
 """
 
-from typing import List
 
 import attrs
-import pandas as pd
+import polars as pl
 
 
 @attrs.define
 class ComparisonResult:
     """Structured results of CSV comparison."""
 
-    unchanged_rows: pd.DataFrame
-    changed_rows: pd.DataFrame
-    added_rows: pd.DataFrame
-    removed_rows: pd.DataFrame
-    dimension_columns: List[str]
+    unchanged_rows: pl.DataFrame
+    changed_rows: pl.DataFrame
+    added_rows: pl.DataFrame
+    removed_rows: pl.DataFrame
+    dimension_columns: list[str]
     total_before: int
     total_after: int
 
 
 class DataComparator:
-    """Core comparison engine using pandas merge operations."""
+    """Core comparison engine using polars merge operations."""
 
     def compare(
         self,
-        before_df: pd.DataFrame,
-        after_df: pd.DataFrame,
-        dimension_columns: List[str],
+        before_df: pl.DataFrame,
+        after_df: pl.DataFrame,
+        dimension_columns: list[str],
     ) -> ComparisonResult:
         """Compare two DataFrames and return structured results."""
         # TODO: Implement comparison logic

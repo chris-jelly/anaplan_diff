@@ -5,7 +5,7 @@ Test configuration and shared fixtures for anaplan-diff tests.
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 from typer.testing import CliRunner
@@ -130,10 +130,10 @@ class CSVValidationHelper:
             True if validation passes
         """
         try:
-            import pandas as pd
+            import polars as pl
 
-            df = pd.read_csv(file_path)
-            return len(df) == expected_rows and len(df.columns) == expected_columns
+            df = pl.read_csv(file_path)
+            return df.height == expected_rows and df.width == expected_columns
         except Exception:
             return False
 
@@ -149,15 +149,15 @@ class CSVValidationHelper:
             Dictionary with CSV file information
         """
         try:
-            import pandas as pd
+            import polars as pl
 
-            df = pd.read_csv(file_path)
+            df = pl.read_csv(file_path)
             return {
-                "rows": len(df),
-                "columns": len(df.columns),
-                "column_names": list(df.columns),
-                "dtypes": dict(df.dtypes),
-                "has_nulls": df.isnull().any().any(),
+                "rows": df.height,
+                "columns": df.width,
+                "column_names": df.columns,
+                "dtypes": dict(zip(df.columns, df.dtypes)),
+                "has_nulls": df.null_count().sum_horizontal().item() > 0,
             }
         except Exception as e:
             return {"error": str(e)}

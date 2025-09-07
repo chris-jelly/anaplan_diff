@@ -5,14 +5,14 @@ These tests validate that our test data generation functions work correctly
 and produce CSV files with the expected structure and content.
 """
 
+
 import pytest
-from pathlib import Path
 
 from tests.fixtures.csv_generators import (
-    generate_basic_csv,
-    save_csv_file,
     TestScenarios,
     create_test_csv_pair,
+    generate_basic_csv,
+    save_csv_file,
 )
 
 
@@ -277,8 +277,8 @@ class TestCSVContentValidation:
         assert "error" not in after_info, f"After file error: {after_info.get('error')}"
 
         # Should have data
-        assert before_info["rows"] > 0, f"Before file has no data rows"
-        assert after_info["columns"] > 0, f"After file has no columns"
+        assert before_info["rows"] > 0, "Before file has no data rows"
+        assert after_info["columns"] > 0, "After file has no columns"
 
         # Should have reasonable structure
         assert before_info["columns"] >= 2, "Should have at least 2 columns"

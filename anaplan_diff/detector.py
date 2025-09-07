@@ -2,10 +2,9 @@
 File analysis and dimension detection for Anaplan CSV files.
 """
 
-from typing import List
 
 import attrs
-import pandas as pd
+import polars as pl
 
 
 @attrs.define
@@ -34,7 +33,7 @@ class FileAnalyzer:
 class DimensionDetector:
     """Detects dimension columns using heuristics."""
 
-    def detect_dimensions(self, df: pd.DataFrame) -> List[str]:
+    def detect_dimensions(self, df: pl.DataFrame) -> list[str]:
         """Identify dimension columns in the DataFrame."""
         # TODO: Implement dimension detection heuristics
         # - Text columns (dtype == 'object')
