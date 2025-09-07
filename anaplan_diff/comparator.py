@@ -2,13 +2,13 @@
 Core comparison logic for CSV data.
 """
 
-from dataclasses import dataclass
 from typing import List
 
+import attrs
 import pandas as pd
 
 
-@dataclass
+@attrs.define
 class ComparisonResult:
     """Structured results of CSV comparison."""
 

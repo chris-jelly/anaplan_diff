@@ -2,13 +2,13 @@
 File analysis and dimension detection for Anaplan CSV files.
 """
 
-from dataclasses import dataclass
 from typing import List
 
+import attrs
 import pandas as pd
 
 
-@dataclass
+@attrs.define
 class CSVInfo:
     """Stores detected CSV format information."""
 
