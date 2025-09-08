@@ -1,7 +1,6 @@
 """Pipeline for CSV comparison operations."""
 
 from pathlib import Path
-from typing import Tuple
 
 from returns.result import Failure, Result, Success
 
@@ -11,7 +10,7 @@ from .detector import CSVInfo, analyze_file, detect_dimensions, load_dataframe
 
 def validate_file_paths(
     baseline_path: str, comparison_path: str
-) -> Result[Tuple[Path, Path], str]:
+) -> Result[tuple[Path, Path], str]:
     """Validate that both file paths exist."""
     baseline = Path(baseline_path)
     comparison = Path(comparison_path)
@@ -24,7 +23,7 @@ def validate_file_paths(
     return Success((baseline, comparison))
 
 
-def analyze_csv_files(paths: Tuple[Path, Path]) -> Result[Tuple[CSVInfo, CSVInfo], str]:
+def analyze_csv_files(paths: tuple[Path, Path]) -> Result[tuple[CSVInfo, CSVInfo], str]:
     """Analyze both CSV files (I/O operation)."""
     baseline_path, comparison_path = paths
 
@@ -36,8 +35,8 @@ def analyze_csv_files(paths: Tuple[Path, Path]) -> Result[Tuple[CSVInfo, CSVInfo
 
 
 def load_csv_dataframes(
-    file_infos: Tuple[CSVInfo, CSVInfo], paths: Tuple[Path, Path]
-) -> Result[Tuple[object, object], str]:
+    file_infos: tuple[CSVInfo, CSVInfo], paths: tuple[Path, Path]
+) -> Result[tuple[object, object], str]:
     """Load both CSV files as DataFrames (I/O operation)."""
     baseline_info, comparison_info = file_infos
     baseline_path, comparison_path = paths
@@ -50,8 +49,8 @@ def load_csv_dataframes(
 
 
 def detect_comparison_dimensions(
-    dataframes: Tuple[object, object],
-) -> Result[Tuple[object, object, list], str]:
+    dataframes: tuple[object, object],
+) -> Result[tuple[object, object, list], str]:
     """Detect dimension columns from the baseline DataFrame."""
     baseline_df, comparison_df = dataframes
 
@@ -61,7 +60,7 @@ def detect_comparison_dimensions(
 
 
 def execute_comparison(
-    data: Tuple[object, object, list],
+    data: tuple[object, object, list],
 ) -> Result[ComparisonResult, str]:
     """Execute the DataFrame comparison."""
     baseline_df, comparison_df, dimension_columns = data
