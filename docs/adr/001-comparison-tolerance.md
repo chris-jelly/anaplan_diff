@@ -19,8 +19,8 @@ Without tolerance handling, the comparison engine would incorrectly identify fun
 
 ```python
 # Real scenario from Anaplan exports
-before_value = 1000.3333333333333
-after_value  = 1000.3333333333334  # Differs by 1e-13
+baseline_value = 1000.3333333333333
+comparison_value  = 1000.3333333333334  # Differs by 1e-13
 
 # Without tolerance: FALSE POSITIVE change detected
 # With tolerance: Correctly identified as unchanged
@@ -52,8 +52,8 @@ class DataComparator:
 ```
 
 ### Comparison Logic
-- **Unchanged**: `abs(before - after) < tolerance`
-- **Changed**: `abs(before - after) >= tolerance`  
+- **Unchanged**: `abs(baseline - comparison) < tolerance`
+- **Changed**: `abs(baseline - comparison) >= tolerance`  
 - **Text data**: Exact equality comparison (no tolerance)
 
 ## Alternatives Considered
@@ -69,7 +69,7 @@ round(value, 10) == round(other_value, 10)
 
 ### 3. Relative Tolerance
 ```python
-abs(before - after) / max(abs(before), abs(after)) < relative_tolerance
+abs(baseline - comparison) / max(abs(baseline), abs(comparison)) < relative_tolerance
 ```
 **Rejected**: More complex to understand and configure; absolute tolerance is sufficient for Anaplan use cases.
 

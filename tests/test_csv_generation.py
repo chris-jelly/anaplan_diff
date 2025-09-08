@@ -5,7 +5,6 @@ These tests validate that our test data generation functions work correctly
 and produce CSV files with the expected structure and content.
 """
 
-
 import pytest
 
 from tests.fixtures.csv_generators import (
@@ -102,107 +101,107 @@ class TestScenarioGeneration:
 
     def test_identical_files_scenario(self):
         """Test identical files scenario generation."""
-        before_csv, after_csv = TestScenarios.identical_files()
+        baseline_csv, comparison_csv = TestScenarios.identical_files()
 
         # Should be exactly the same
-        assert before_csv == after_csv
+        assert baseline_csv == comparison_csv
 
         # Should have proper structure
-        lines = before_csv.strip().split("\n")
+        lines = baseline_csv.strip().split("\n")
         assert len(lines) >= 2  # At least header + 1 data row
         assert "Region" in lines[0]  # Header should contain Region
-        assert "," in before_csv  # Should use comma delimiter
+        assert "," in baseline_csv  # Should use comma delimiter
 
     def test_single_value_change_scenario(self):
         """Test single value change scenario."""
-        before_csv, after_csv = TestScenarios.single_value_change()
+        baseline_csv, comparison_csv = TestScenarios.single_value_change()
 
         # Should be different
-        assert before_csv != after_csv
+        assert baseline_csv != comparison_csv
 
         # Should have same number of lines
-        before_lines = before_csv.strip().split("\n")
-        after_lines = after_csv.strip().split("\n")
-        assert len(before_lines) == len(after_lines)
+        baseline_lines = baseline_csv.strip().split("\n")
+        comparison_lines = comparison_csv.strip().split("\n")
+        assert len(baseline_lines) == len(comparison_lines)
 
         # Should have same headers
-        assert before_lines[0] == after_lines[0]
+        assert baseline_lines[0] == comparison_lines[0]
 
         # Should have exactly one different line
         different_lines = 0
-        for i in range(1, len(before_lines)):
-            if before_lines[i] != after_lines[i]:
+        for i in range(1, len(baseline_lines)):
+            if baseline_lines[i] != comparison_lines[i]:
                 different_lines += 1
         assert different_lines == 1
 
     def test_row_added_scenario(self):
         """Test row added scenario."""
-        before_csv, after_csv = TestScenarios.row_added()
+        baseline_csv, comparison_csv = TestScenarios.row_added()
 
-        before_lines = before_csv.strip().split("\n")
-        after_lines = after_csv.strip().split("\n")
+        baseline_lines = baseline_csv.strip().split("\n")
+        comparison_lines = comparison_csv.strip().split("\n")
 
-        # After should have one more line
-        assert len(after_lines) == len(before_lines) + 1
+        # Comparison should have one more line
+        assert len(comparison_lines) == len(baseline_lines) + 1
 
         # Headers should be the same
-        assert before_lines[0] == after_lines[0]
+        assert baseline_lines[0] == comparison_lines[0]
 
     def test_row_removed_scenario(self):
         """Test row removed scenario."""
-        before_csv, after_csv = TestScenarios.row_removed()
+        baseline_csv, comparison_csv = TestScenarios.row_removed()
 
-        before_lines = before_csv.strip().split("\n")
-        after_lines = after_csv.strip().split("\n")
+        baseline_lines = baseline_csv.strip().split("\n")
+        comparison_lines = comparison_csv.strip().split("\n")
 
-        # Before should have one more line
-        assert len(before_lines) == len(after_lines) + 1
+        # Baseline should have one more line
+        assert len(baseline_lines) == len(comparison_lines) + 1
 
         # Headers should be the same
-        assert before_lines[0] == after_lines[0]
+        assert baseline_lines[0] == comparison_lines[0]
 
     def test_multiple_changes_scenario(self):
         """Test multiple changes scenario."""
-        before_csv, after_csv = TestScenarios.multiple_changes()
+        baseline_csv, comparison_csv = TestScenarios.multiple_changes()
 
         # Should be different
-        assert before_csv != after_csv
+        assert baseline_csv != comparison_csv
 
         # Should have proper CSV structure
-        assert "Region" in before_csv
-        assert "Region" in after_csv
+        assert "Region" in baseline_csv
+        assert "Region" in comparison_csv
 
     def test_different_formats_scenario(self):
         """Test different formats scenario."""
-        before_csv, after_csv = TestScenarios.different_formats()
+        baseline_csv, comparison_csv = TestScenarios.different_formats()
 
         # Should have different delimiters
-        assert "," in before_csv
-        assert ";" in after_csv
+        assert "," in baseline_csv
+        assert ";" in comparison_csv
 
-        # After should have BOM
-        assert after_csv.startswith("\ufeff")
-        assert not before_csv.startswith("\ufeff")
+        # Comparison should have BOM
+        assert comparison_csv.startswith("\ufeff")
+        assert not baseline_csv.startswith("\ufeff")
 
     def test_with_anaplan_page_selector_scenario(self):
         """Test Anaplan page selector scenario."""
-        before_csv, after_csv = TestScenarios.with_anaplan_page_selector()
+        baseline_csv, comparison_csv = TestScenarios.with_anaplan_page_selector()
 
         # Both should have page selector
-        assert before_csv.startswith("#")
-        assert after_csv.startswith("#")
-        assert "Page Selector" in before_csv
-        assert "Page Selector" in after_csv
+        assert baseline_csv.startswith("#")
+        assert comparison_csv.startswith("#")
+        assert "Page Selector" in baseline_csv
+        assert "Page Selector" in comparison_csv
 
     def test_dimension_detection_test_scenario(self):
         """Test dimension detection scenario."""
-        before_csv, after_csv = TestScenarios.dimension_detection_test()
+        baseline_csv, comparison_csv = TestScenarios.dimension_detection_test()
 
         # Should have various column types for testing dimension detection
-        assert "ID" in before_csv
-        assert "Region" in before_csv
-        assert "Product_Code" in before_csv
-        assert "Sales_Amount" in before_csv
+        assert "ID" in baseline_csv
+        assert "Region" in baseline_csv
+        assert "Product_Code" in baseline_csv
+        assert "Sales_Amount" in baseline_csv
 
 
 class TestTestCsvPairCreation:
@@ -210,40 +209,42 @@ class TestTestCsvPairCreation:
 
     def test_create_test_csv_pair(self, temp_dir):
         """Test creating a pair of CSV files."""
-        before_path, after_path = create_test_csv_pair(
+        baseline_path, comparison_path = create_test_csv_pair(
             "identical_files", temp_dir, "test_scenario"
         )
 
         # Files should exist
-        assert before_path.exists()
-        assert after_path.exists()
+        assert baseline_path.exists()
+        assert comparison_path.exists()
 
         # Files should have expected names
-        assert before_path.name == "test_scenario_before.csv"
-        assert after_path.name == "test_scenario_after.csv"
+        assert baseline_path.name == "test_scenario_baseline.csv"
+        assert comparison_path.name == "test_scenario_comparison.csv"
 
         # Files should be in the temp directory
-        assert before_path.parent == temp_dir
-        assert after_path.parent == temp_dir
+        assert baseline_path.parent == temp_dir
+        assert comparison_path.parent == temp_dir
 
         # Files should have content
-        assert len(before_path.read_text()) > 0
-        assert len(after_path.read_text()) > 0
+        assert len(baseline_path.read_text()) > 0
+        assert len(comparison_path.read_text()) > 0
 
     def test_create_test_csv_pair_different_scenario(self, temp_dir):
         """Test creating CSV pair with different scenario."""
-        before_path, after_path = create_test_csv_pair("single_value_change", temp_dir)
+        baseline_path, comparison_path = create_test_csv_pair(
+            "single_value_change", temp_dir
+        )
 
-        before_content = before_path.read_text()
-        after_content = after_path.read_text()
+        baseline_content = baseline_path.read_text()
+        comparison_content = comparison_path.read_text()
 
         # Should be different (single value change)
-        assert before_content != after_content
+        assert baseline_content != comparison_content
 
         # Should have same structure (same number of lines)
-        before_lines = before_content.strip().split("\n")
-        after_lines = after_content.strip().split("\n")
-        assert len(before_lines) == len(after_lines)
+        baseline_lines = baseline_content.strip().split("\n")
+        comparison_lines = comparison_content.strip().split("\n")
+        assert len(baseline_lines) == len(comparison_lines)
 
 
 class TestCSVContentValidation:
@@ -264,22 +265,24 @@ class TestCSVContentValidation:
         self, scenario_name, temp_dir, csv_validator
     ):
         """Test that all scenarios generate valid CSV files."""
-        before_path, after_path = create_test_csv_pair(scenario_name, temp_dir)
+        baseline_path, comparison_path = create_test_csv_pair(scenario_name, temp_dir)
 
         # Both files should be valid CSV
-        before_info = csv_validator.get_csv_info(before_path)
-        after_info = csv_validator.get_csv_info(after_path)
+        baseline_info = csv_validator.get_csv_info(baseline_path)
+        comparison_info = csv_validator.get_csv_info(comparison_path)
 
         # Should not have errors
-        assert "error" not in before_info, (
-            f"Before file error: {before_info.get('error')}"
+        assert "error" not in baseline_info, (
+            f"Baseline file error: {baseline_info.get('error')}"
         )
-        assert "error" not in after_info, f"After file error: {after_info.get('error')}"
+        assert "error" not in comparison_info, (
+            f"Comparison file error: {comparison_info.get('error')}"
+        )
 
         # Should have data
-        assert before_info["rows"] > 0, "Before file has no data rows"
-        assert after_info["columns"] > 0, "After file has no columns"
+        assert baseline_info["rows"] > 0, "Baseline file has no data rows"
+        assert comparison_info["columns"] > 0, "Comparison file has no columns"
 
         # Should have reasonable structure
-        assert before_info["columns"] >= 2, "Should have at least 2 columns"
-        assert after_info["columns"] >= 2, "Should have at least 2 columns"
+        assert baseline_info["columns"] >= 2, "Should have at least 2 columns"
+        assert comparison_info["columns"] >= 2, "Should have at least 2 columns"

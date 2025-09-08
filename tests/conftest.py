@@ -41,20 +41,20 @@ class CLITestHelper:
         self.cli_runner = cli_runner
 
     def run_cli_command(
-        self, before_file: Path, after_file: Path, expected_exit_code: int = 0
+        self, baseline_file: Path, comparison_file: Path, expected_exit_code: int = 0
     ) -> subprocess.CompletedProcess:
         """
         Run the anaplan-diff CLI command and return the result.
 
         Args:
-            before_file: Path to the 'before' CSV file
-            after_file: Path to the 'after' CSV file
+            baseline_file: Path to the 'baseline' CSV file
+            comparison_file: Path to the 'comparison' CSV file
             expected_exit_code: Expected exit code (0 for success)
 
         Returns:
             CliRunner result object
         """
-        result = self.cli_runner.invoke(app, [str(before_file), str(after_file)])
+        result = self.cli_runner.invoke(app, [str(baseline_file), str(comparison_file)])
 
         # Store the result for debugging
         self.last_result = result
@@ -72,7 +72,7 @@ class CLITestHelper:
             prefix: File prefix for generated files
 
         Returns:
-            Tuple of (before_file_path, after_file_path)
+            Tuple of (baseline_file_path, comparison_file_path)
         """
         return create_test_csv_pair(scenario_name, self.temp_dir, prefix)
 

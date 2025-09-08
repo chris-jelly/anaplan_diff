@@ -16,6 +16,8 @@ dependencies = [
     { name = "attrs" },
     { name = "chardet" },
     { name = "polars" },
+    { name = "returns", version = "0.23.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "returns", version = "0.26.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "rich" },
     { name = "typer" },
 ]
@@ -31,6 +33,7 @@ requires-dist = [
     { name = "attrs", specifier = ">=22.0.0" },
     { name = "chardet", specifier = ">=4.0.0" },
     { name = "polars", specifier = ">=1.33.0" },
+    { name = "returns", specifier = ">=0.23.0" },
     { name = "rich", specifier = ">=10.0.0" },
     { name = "typer", specifier = ">=0.9.0" },
 ]
@@ -219,6 +222,38 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a3/5c/00a0e072241553e1a7496d638deababa67c5058571567b92a7eaa258397c/pytest-8.4.2.tar.gz", hash = "sha256:86c0d0b93306b961d58d62a4db4879f27fe25513d4b969df351abdddb3c30e01", size = 1519618, upload-time = "2025-09-04T14:34:22.711Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a8/a4/20da314d277121d6534b3a980b29035dcd51e6744bd79075a6ce8fa4eb8d/pytest-8.4.2-py3-none-any.whl", hash = "sha256:872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79", size = 365750, upload-time = "2025-09-04T14:34:20.226Z" },
+]
+
+[[package]]
+name = "returns"
+version = "0.23.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.10'",
+]
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.10'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/52/b4/411f1e4026344f0ccabc5654aee02280ebe8a9783756e53c76437693dc9a/returns-0.23.0.tar.gz", hash = "sha256:27594c28e5fc338e052d27ddf77fe1da82db4472f6d59901e7e9165be35a5256", size = 242563, upload-time = "2024-06-15T09:18:25.581Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9c/cc/ff7046c009c17136f83764f8ff225309b58d364c2ffd5626b5a338bd865a/returns-0.23.0-py3-none-any.whl", hash = "sha256:278aa6168072b24574ad14be32f7123d1b835928473dd40bc506f47c8b25859a", size = 155284, upload-time = "2024-06-15T09:18:22.525Z" },
+]
+
+[[package]]
+name = "returns"
+version = "0.26.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.12'",
+    "python_full_version == '3.11.*'",
+    "python_full_version == '3.10.*'",
+]
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version >= '3.10'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/06/c2/6dda7ef39464568152e35c766a8b49ab1cdb1b03a5891441a7c2fa40dc61/returns-0.26.0.tar.gz", hash = "sha256:180320e0f6e9ea9845330ccfc020f542330f05b7250941d9b9b7c00203fcc3da", size = 105300, upload-time = "2025-07-24T13:11:21.772Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/57/4d/a7545bf6c62b0dbe5795f22ea9e88cc070fdced5c34663ebc5bed2f610c0/returns-0.26.0-py3-none-any.whl", hash = "sha256:7cae94c730d6c56ffd9d0f583f7a2c0b32cfe17d141837150c8e6cff3eb30d71", size = 160515, upload-time = "2025-07-24T13:11:20.041Z" },
 ]
 
 [[package]]

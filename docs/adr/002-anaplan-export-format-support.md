@@ -68,7 +68,7 @@ The `DimensionDetector` will identify dimensions using these heuristics:
 ### Comparison Key
 Rows will be compared using a composite key of:
 - Line Item + all dimension values (excluding the final Value column)
-- This ensures proper matching between before/after exports
+- This ensures proper matching between baseline/comparison exports
 
 ## Consequences
 

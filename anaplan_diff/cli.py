@@ -1,37 +1,43 @@
-"""
-CLI interface for the Anaplan CSV diff tool.
-"""
+"""CLI interface for the Anaplan CSV diff tool."""
 
 from pathlib import Path
 
 import typer
+from returns.result import Failure, Success
 
 from .formatter import TerminalFormatter
+from .pipeline import run_csv_diff_pipeline
 
 app = typer.Typer(help="Compare two CSV exports from Anaplan and show changes")
 
 
 @app.command()
 def diff(
-    before: Path = typer.Argument(..., help="Path to the 'before' CSV file"),
-    after: Path = typer.Argument(..., help="Path to the 'after' CSV file"),
+    baseline: Path = typer.Argument(..., help="Path to the 'baseline' CSV file"),
+    comparison: Path = typer.Argument(..., help="Path to the 'comparison' CSV file"),
 ) -> None:
     """Compare two CSV files and display the differences."""
     formatter = TerminalFormatter()
 
-    # TODO: Implement the full pipeline
-    # 1. Validate file paths exist
-    # 2. Analyze both CSV files
-    # 3. Load DataFrames
-    # 4. Detect dimension columns
-    # 5. Compare the data
-    # 6. Format and display results
+    # Progress indicators (side effects)
+    formatter.console.print("🔍 Analyzing CSV files...")
+    formatter.console.print("📊 Loading data...")
+    formatter.console.print("🔎 Detecting dimensions...")
+    formatter.console.print("⚖️  Comparing data...")
 
-    try:
-        # Placeholder implementation
-        formatter.print_success("Analysis complete - implementation needed")
-    except Exception as e:
-        formatter.print_error(str(e))
+    # Execute pipeline
+    result = run_csv_diff_pipeline(str(baseline), str(comparison))
+
+    # Handle result (I/O operation)
+    match result:
+        case Success(comparison_result):
+            formatter.console.print(
+                f"Detected dimensions: {', '.join(comparison_result.dimension_columns)}"
+            )
+            formatter.format_results(comparison_result)
+        case Failure(error_message):
+            formatter.print_error(error_message)
+            raise typer.Exit(1)
 
 
 def main() -> None:

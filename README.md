@@ -28,7 +28,7 @@ pip install -e .
 
 ```bash
 # Basic usage - compare two CSV files
-anaplan-diff before.csv after.csv
+anaplan-diff baseline.csv comparison.csv
 
 # The tool will automatically:
 # - Detect CSV format and encoding

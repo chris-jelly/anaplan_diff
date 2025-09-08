@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Anaplan CSV Diff Tool** - A Python CLI tool that compares two CSV exports from Anaplan and shows what changed between them. The tool automatically detects dimensions and displays differences in a clean terminal format.
 
-**Core Interface**: `anaplan-diff before.csv after.csv` (zero configuration needed)
+**Core Interface**: `anaplan-diff baseline.csv comparison.csv` (zero configuration needed)
 
 **Current Status**: Project skeleton is established with package structure and dependencies configured. Core functionality is not yet implemented - all main classes have placeholder methods with TODO comments.
 
