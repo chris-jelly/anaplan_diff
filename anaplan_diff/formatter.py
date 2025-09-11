@@ -2,78 +2,127 @@
 Terminal output formatting using Rich library.
 """
 
+from typing import Optional
+import attrs
 from rich.console import Console
 from rich.table import Table
 
 from .comparator import ComparisonResult
 
 
-class TerminalFormatter:
-    """Formats comparison results for terminal display."""
+@attrs.frozen
+class FormattedOutput:
+    """Immutable structured output for terminal display."""
 
-    def __init__(self):
-        self.console = Console()
+    summary: str
+    changes_table: Optional[str] = None
+    additions_table: Optional[str] = None
+    removals_table: Optional[str] = None
+    overall_status: str = ""
 
-    def format_results(self, result: ComparisonResult) -> None:
-        """Display formatted comparison results in terminal."""
-        # Display summary first
-        self._display_summary(result)
 
-        # Show detailed changes if any exist
-        if len(result.changed_rows) > 0:
-            self._display_changes(result)
+# Pure functional formatting functions
 
-        if len(result.added_rows) > 0:
-            self._display_additions(result)
 
-        if len(result.removed_rows) > 0:
-            self._display_removals(result)
+def format_results(result: ComparisonResult) -> FormattedOutput:
+    """Format comparison results into structured output (pure function)."""
+    summary = _format_summary(result)
 
-    def _display_summary(self, result: ComparisonResult) -> None:
-        """Display summary statistics."""
-        unchanged_count = len(result.unchanged_rows)
-        changed_count = len(result.changed_rows)
-        added_count = len(result.added_rows)
-        removed_count = len(result.removed_rows)
+    changes_table = None
+    if len(result.changed_rows) > 0:
+        changes_table = _format_changes(result)
 
-        self.console.print()
-        self.console.print("📊 [bold]Comparison Summary[/bold]", style="blue")
-        self.console.print("=" * 40)
+    additions_table = None
+    if len(result.added_rows) > 0:
+        additions_table = _format_additions(result)
 
-        # Create summary table
-        summary_table = Table(show_header=False, box=None, padding=(0, 2))
-        summary_table.add_column("Category", style="bold")
-        summary_table.add_column("Count", justify="right")
+    removals_table = None
+    if len(result.removed_rows) > 0:
+        removals_table = _format_removals(result)
 
-        summary_table.add_row("Total Baseline:", str(result.total_baseline))
-        summary_table.add_row("Total Comparison:", str(result.total_comparison))
-        summary_table.add_row("Unchanged:", f"[green]{unchanged_count}[/green]")
-        summary_table.add_row("Changed:", f"[yellow]{changed_count}[/yellow]")
-        summary_table.add_row("Added:", f"[blue]{added_count}[/blue]")
-        summary_table.add_row("Removed:", f"[red]{removed_count}[/red]")
+    overall_status = _format_overall_status(result)
 
-        self.console.print(summary_table)
+    return FormattedOutput(
+        summary=summary,
+        changes_table=changes_table,
+        additions_table=additions_table,
+        removals_table=removals_table,
+        overall_status=overall_status,
+    )
 
-        # Show overall status
-        if changed_count + added_count + removed_count == 0:
-            self.console.print(
-                "\n✅ [green]No differences found - files are identical[/green]"
-            )
-        else:
-            total_changes = changed_count + added_count + removed_count
-            self.console.print(
-                f"\n⚠️  [yellow]{total_changes} differences found[/yellow]"
-            )
 
-    def _display_changes(self, result: ComparisonResult) -> None:
-        """Display rows with changed values."""
-        self.console.print(
+def display_formatted_output(formatted: FormattedOutput, console: Console) -> None:
+    """Display formatted output to console (I/O operation)."""
+    console.print(formatted.summary, markup=False)
+
+    if formatted.changes_table:
+        console.print(formatted.changes_table, markup=False)
+
+    if formatted.additions_table:
+        console.print(formatted.additions_table, markup=False)
+
+    if formatted.removals_table:
+        console.print(formatted.removals_table, markup=False)
+
+    if formatted.overall_status:
+        console.print(formatted.overall_status, markup=False)
+
+
+def _format_summary(result: ComparisonResult) -> str:
+    """Format summary statistics as string (pure function)."""
+    unchanged_count = len(result.unchanged_rows)
+    changed_count = len(result.changed_rows)
+    added_count = len(result.added_rows)
+    removed_count = len(result.removed_rows)
+
+    # Create summary table
+    console = Console(file=None, width=80)  # For string capture
+    summary_table = Table(show_header=False, box=None, padding=(0, 2))
+    summary_table.add_column("Category", style="bold")
+    summary_table.add_column("Count", justify="right")
+
+    summary_table.add_row("Total Baseline:", str(result.total_baseline))
+    summary_table.add_row("Total Comparison:", str(result.total_comparison))
+    summary_table.add_row("Unchanged:", f"[green]{unchanged_count}[/green]")
+    summary_table.add_row("Changed:", f"[yellow]{changed_count}[/yellow]")
+    summary_table.add_row("Added:", f"[blue]{added_count}[/blue]")
+    summary_table.add_row("Removed:", f"[red]{removed_count}[/red]")
+
+    # Capture table as string
+    with console.capture() as capture:
+        console.print()
+        console.print("📊 [bold]Comparison Summary[/bold]", style="blue")
+        console.print("=" * 40)
+        console.print(summary_table)
+
+    return capture.get()
+
+
+def _format_overall_status(result: ComparisonResult) -> str:
+    """Format overall status message (pure function)."""
+    changed_count = len(result.changed_rows)
+    added_count = len(result.added_rows)
+    removed_count = len(result.removed_rows)
+
+    if changed_count + added_count + removed_count == 0:
+        return "\n✅ [green]No differences found - files are identical[/green]"
+    else:
+        total_changes = changed_count + added_count + removed_count
+        return f"\n⚠️  [yellow]{total_changes} differences found[/yellow]"
+
+
+def _format_changes(result: ComparisonResult) -> str:
+    """Format rows with changed values as string (pure function)."""
+    console = Console(file=None, width=120)
+
+    with console.capture() as capture:
+        console.print(
             f"\n🔄 [bold yellow]Changed Rows ({len(result.changed_rows)})[/bold yellow]"
         )
-        self.console.print("-" * 40)
+        console.print("-" * 40)
 
         if len(result.changed_rows) == 0:
-            return
+            return ""
 
         # Create changes table
         table = Table(box=None, show_edge=False)
@@ -104,87 +153,116 @@ class TerminalFormatter:
             change_val = row["change"]
             change_pct = row["change_percent"]
 
-            row_data.append(self._format_number(baseline_val))
-            row_data.append(self._format_number(comparison_val))
-            row_data.append(self._format_number(change_val))
+            row_data.append(_format_number(baseline_val))
+            row_data.append(_format_number(comparison_val))
+            row_data.append(_format_number(change_val))
             row_data.append(f"{change_pct:.1f}%" if change_pct is not None else "N/A")
 
             table.add_row(*row_data)
 
-        self.console.print(table)
+        console.print(table)
 
         if len(result.changed_rows) > 20:
             remaining = len(result.changed_rows) - 20
-            self.console.print(f"\n[dim]... and {remaining} more changed rows[/dim]")
+            console.print(f"\n[dim]... and {remaining} more changed rows[/dim]")
 
-    def _display_additions(self, result: ComparisonResult) -> None:
-        """Display newly added rows."""
-        self.console.print(
+    return capture.get()
+
+
+def _format_additions(result: ComparisonResult) -> str:
+    """Format newly added rows as string (pure function)."""
+    console = Console(file=None, width=120)
+
+    with console.capture() as capture:
+        console.print(
             f"\n➕ [bold blue]Added Rows ({len(result.added_rows)})[/bold blue]"
         )
-        self.console.print("-" * 40)
+        console.print("-" * 40)
 
-        self._display_simple_table(
-            result.added_rows, result.dimension_columns, max_rows=10
+        _display_simple_table_to_console(
+            result.added_rows, result.dimension_columns, console, max_rows=10
         )
 
-    def _display_removals(self, result: ComparisonResult) -> None:
-        """Display removed rows."""
-        self.console.print(
+    return capture.get()
+
+
+def _format_removals(result: ComparisonResult) -> str:
+    """Format removed rows as string (pure function)."""
+    console = Console(file=None, width=120)
+
+    with console.capture() as capture:
+        console.print(
             f"\n➖ [bold red]Removed Rows ({len(result.removed_rows)})[/bold red]"
         )
-        self.console.print("-" * 40)
+        console.print("-" * 40)
 
-        self._display_simple_table(
-            result.removed_rows, result.dimension_columns, max_rows=10
+        _display_simple_table_to_console(
+            result.removed_rows, result.dimension_columns, console, max_rows=10
         )
 
-    def _display_simple_table(
-        self, df, dimension_columns: list[str], max_rows: int = 10
-    ) -> None:
-        """Display a simple table of rows."""
-        if len(df) == 0:
-            return
+    return capture.get()
 
-        table = Table(box=None, show_edge=False)
 
-        # Add all columns
+def _display_simple_table_to_console(
+    df, dimension_columns: list[str], console: Console, max_rows: int = 10
+) -> None:
+    """Display a simple table of rows to console (helper for string capture)."""
+    if len(df) == 0:
+        return
+
+    table = Table(box=None, show_edge=False)
+
+    # Add all columns
+    for col in df.columns:
+        table.add_column(col, style="dim" if col in dimension_columns else "bold")
+
+    # Show limited number of rows
+    display_rows = df.head(max_rows)
+
+    for row in display_rows.iter_rows(named=True):
+        row_data = []
         for col in df.columns:
-            table.add_column(col, style="dim" if col in dimension_columns else "bold")
+            value = row[col]
+            if isinstance(value, (int, float)):
+                row_data.append(_format_number(value))
+            else:
+                row_data.append(str(value))
+        table.add_row(*row_data)
 
-        # Show limited number of rows
-        display_rows = df.head(max_rows)
+    console.print(table)
 
-        for row in display_rows.iter_rows(named=True):
-            row_data = []
-            for col in df.columns:
-                value = row[col]
-                if isinstance(value, (int, float)):
-                    row_data.append(self._format_number(value))
-                else:
-                    row_data.append(str(value))
-            table.add_row(*row_data)
+    if len(df) > max_rows:
+        remaining = len(df) - max_rows
+        console.print(f"\n[dim]... and {remaining} more rows[/dim]")
 
-        self.console.print(table)
 
-        if len(df) > max_rows:
-            remaining = len(df) - max_rows
-            self.console.print(f"\n[dim]... and {remaining} more rows[/dim]")
+def _format_number(value) -> str:
+    """Format numeric values for display (pure function)."""
+    if value is None:
+        return "N/A"
 
-    def _format_number(self, value) -> str:
-        """Format numeric values for display."""
-        if value is None:
-            return "N/A"
+    # Handle very large numbers
+    if abs(value) >= 1e6:
+        return f"{value:,.0f}"
+    elif abs(value) >= 1000:
+        return f"{value:,.1f}"
+    elif abs(value) >= 1:
+        return f"{value:.2f}"
+    else:
+        return f"{value:.4f}"
 
-        # Handle very large numbers
-        if abs(value) >= 1e6:
-            return f"{value:,.0f}"
-        elif abs(value) >= 1000:
-            return f"{value:,.1f}"
-        elif abs(value) >= 1:
-            return f"{value:.2f}"
-        else:
-            return f"{value:.4f}"
+
+# Legacy wrapper for backward compatibility
+class TerminalFormatter:
+    """Legacy wrapper for backward compatibility."""
+
+    def __init__(self):
+        self.console = Console()
+
+    def format_results(self, result: ComparisonResult) -> None:
+        """Display formatted comparison results in terminal (legacy method)."""
+        formatted = format_results(result)
+        display_formatted_output(formatted, self.console)
 
     def print_error(self, message: str) -> None:
         """Print formatted error message."""
