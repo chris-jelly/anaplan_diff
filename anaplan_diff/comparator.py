@@ -273,26 +273,3 @@ def _find_removed_rows(
     )
     all_columns = [col for col in baseline_df.columns if col != "_composite_key"]
     return removed.select(all_columns)
-
-
-# Compatibility wrapper for tests
-class DataComparator:
-    """Compatibility wrapper for functional comparator."""
-
-    def __init__(self, comparison_tolerance: float = 1e-10):
-        if comparison_tolerance <= 0:
-            raise ValueError("Comparison tolerance must be positive")
-        self.comparison_tolerance = comparison_tolerance
-
-    def compare(self, baseline_df, comparison_df, dimension_columns, format_type=None):
-        result = compare_dataframes(
-            baseline_df,
-            comparison_df,
-            dimension_columns,
-            format_type,
-            self.comparison_tolerance,
-        )
-        if isinstance(result, Success):
-            return result.unwrap()
-        else:
-            raise ValueError(result.failure())

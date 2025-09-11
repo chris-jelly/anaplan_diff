@@ -244,33 +244,3 @@ def _is_valid_dimension(series: pl.Series, col_name: str) -> bool:
         return True
 
     return False
-
-
-# Compatibility wrappers for tests
-class FileAnalyzer:
-    """Compatibility wrapper for functional detector."""
-
-    def analyze_file(self, file_path: str):
-        result = analyze_file(file_path)
-        if isinstance(result, Success):
-            return result.unwrap()
-        else:
-            raise ValueError(result.failure())
-
-    def load_dataframe(self, file_path: str, csv_info: CSVInfo):
-        result = load_dataframe(file_path, csv_info)
-        if isinstance(result, Success):
-            return result.unwrap()
-        else:
-            raise ValueError(result.failure())
-
-
-class DimensionDetector:
-    """Compatibility wrapper for functional detector."""
-
-    def detect_dimensions(self, df):
-        result = detect_dimensions(df)
-        if isinstance(result, Success):
-            return result.unwrap()
-        else:
-            raise ValueError(result.failure())

@@ -4,9 +4,10 @@ Basic functionality tests for the anaplan-diff tool.
 
 import polars as pl
 import pytest
+from returns.result import Success, Failure
 
-from anaplan_diff.comparator import DataComparator
-from anaplan_diff.detector import CSVInfo, DimensionDetector, FileAnalyzer
+from anaplan_diff.comparator import compare_dataframes
+from anaplan_diff.detector import CSVInfo
 from anaplan_diff.formatter import TerminalFormatter
 from tests.fixtures.csv_generators import AnaplanFormat
 
@@ -25,42 +26,15 @@ class TestCSVInfo:
         assert csv_info.skip_rows == 0
 
 
-class TestFileAnalyzer:
-    """Test the FileAnalyzer class."""
+class TestDataComparison:
+    """Test the functional data comparison."""
 
-    def test_file_analyzer_creation(self):
-        """Test creating a FileAnalyzer instance."""
-        analyzer = FileAnalyzer()
-        assert analyzer is not None
-
-
-class TestDimensionDetector:
-    """Test the DimensionDetector class."""
-
-    def test_dimension_detector_creation(self):
-        """Test creating a DimensionDetector instance."""
-        detector = DimensionDetector()
-        assert detector is not None
-
-
-class TestDataComparator:
-    """Test the DataComparator class."""
-
-    def test_data_comparator_creation(self):
-        """Test creating a DataComparator instance."""
-        comparator = DataComparator()
-        assert comparator is not None
-        assert comparator.comparison_tolerance == 1e-10
-
-    def test_data_comparator_custom_tolerance(self):
-        """Test creating a DataComparator with custom tolerance."""
-        comparator = DataComparator(comparison_tolerance=1e-5)
-        assert comparator.comparison_tolerance == 1e-5
-
-    def test_data_comparator_invalid_tolerance(self):
-        """Test that invalid tolerance raises error."""
-        with pytest.raises(ValueError, match="Comparison tolerance must be positive"):
-            DataComparator(comparison_tolerance=-1)
+    def test_compare_dataframes_invalid_tolerance(self):
+        """Test that invalid tolerance returns failure."""
+        df = pl.DataFrame({"A": [1], "B": [2]})
+        result = compare_dataframes(df, df, ["A"], comparison_tolerance=-1)
+        assert isinstance(result, Failure)
+        assert "Comparison tolerance must be positive" in result.failure()
 
     def test_traditional_tabular_comparison(self):
         """Test basic comparison of traditional tabular data."""
@@ -81,10 +55,11 @@ class TestDataComparator:
         before_df = pl.DataFrame(before_data)
         after_df = pl.DataFrame(after_data)
 
-        comparator = DataComparator()
-        result = comparator.compare(
+        result = compare_dataframes(
             before_df, after_df, dimension_columns=["Region", "Product"]
         )
+        assert isinstance(result, Success)
+        result = result.unwrap()
 
         # Check result structure
         assert result.dimension_columns == ["Region", "Product"]
@@ -114,13 +89,14 @@ class TestDataComparator:
         before_df = pl.DataFrame(before_data)
         after_df = pl.DataFrame(after_data)
 
-        comparator = DataComparator()
-        result = comparator.compare(
+        result = compare_dataframes(
             before_df,
             after_df,
             dimension_columns=["Label"],
             format_type=AnaplanFormat.TABULAR_SINGLE_COLUMN,
         )
+        assert isinstance(result, Success)
+        result = result.unwrap()
 
         # Check result structure
         assert result.format_type == AnaplanFormat.TABULAR_SINGLE_COLUMN
@@ -132,41 +108,38 @@ class TestDataComparator:
         empty_df = pl.DataFrame()
         data_df = pl.DataFrame({"A": [1], "B": [2]})
 
-        comparator = DataComparator()
+        result = compare_dataframes(empty_df, data_df, ["A"])
+        assert isinstance(result, Failure)
+        assert "Baseline DataFrame is empty" in result.failure()
 
-        with pytest.raises(ValueError, match="Baseline DataFrame is empty"):
-            comparator.compare(empty_df, data_df, ["A"])
-
-        with pytest.raises(ValueError, match="Comparison DataFrame is empty"):
-            comparator.compare(data_df, empty_df, ["A"])
+        result = compare_dataframes(data_df, empty_df, ["A"])
+        assert isinstance(result, Failure)
+        assert "Comparison DataFrame is empty" in result.failure()
 
     def test_mismatched_columns_validation(self):
         """Test that mismatched columns raise appropriate errors."""
         before_df = pl.DataFrame({"A": [1], "B": [2]})
         after_df = pl.DataFrame({"A": [1], "C": [3]})
 
-        comparator = DataComparator()
-
-        with pytest.raises(ValueError, match="Files have different column structures"):
-            comparator.compare(before_df, after_df, ["A"])
+        result = compare_dataframes(before_df, after_df, ["A"])
+        assert isinstance(result, Failure)
+        assert "Files have different column structures" in result.failure()
 
     def test_missing_dimension_columns(self):
         """Test that missing dimension columns raise appropriate errors."""
         df = pl.DataFrame({"A": [1], "B": [2]})
 
-        comparator = DataComparator()
-
-        with pytest.raises(ValueError, match="Dimension column 'X' not found in data"):
-            comparator.compare(df, df, ["X"])
+        result = compare_dataframes(df, df, ["X"])
+        assert isinstance(result, Failure)
+        assert "Dimension column 'X' not found in data" in result.failure()
 
     def test_no_measure_columns(self):
         """Test that DataFrames with only dimension columns raise appropriate errors."""
         df = pl.DataFrame({"A": ["x"], "B": ["y"]})
 
-        comparator = DataComparator()
-
-        with pytest.raises(ValueError, match="No measure columns found for comparison"):
-            comparator.compare(df, df, ["A", "B"])
+        result = compare_dataframes(df, df, ["A", "B"])
+        assert isinstance(result, Failure)
+        assert "No measure columns found for comparison" in result.failure()
 
     def test_numeric_vs_text_measures(self):
         """Test handling of mixed numeric and text measures."""
@@ -184,8 +157,11 @@ class TestDataComparator:
         before_df = pl.DataFrame(before_data)
         after_df = pl.DataFrame(after_data)
 
-        comparator = DataComparator(comparison_tolerance=1.0)  # Large tolerance
-        result = comparator.compare(before_df, after_df, ["Region"])
+        result = compare_dataframes(
+            before_df, after_df, ["Region"], comparison_tolerance=1.0
+        )
+        assert isinstance(result, Success)
+        result = result.unwrap()
 
         # North should be unchanged (within tolerance) but Status changed
         # South should be unchanged completely
