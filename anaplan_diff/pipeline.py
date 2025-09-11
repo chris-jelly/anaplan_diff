@@ -1,7 +1,9 @@
 """Pipeline for CSV comparison operations."""
 
 from pathlib import Path
+from typing import List
 
+import polars as pl
 from returns.result import Failure, Result, Success
 
 from .comparator import ComparisonResult, compare_dataframes
@@ -27,30 +29,36 @@ def analyze_csv_files(paths: tuple[Path, Path]) -> Result[tuple[CSVInfo, CSVInfo
     """Analyze both CSV files (I/O operation)."""
     baseline_path, comparison_path = paths
 
-    return analyze_file(str(baseline_path)).bind(
-        lambda baseline_info: analyze_file(str(comparison_path)).bind(
-            lambda comparison_info: Success((baseline_info, comparison_info))
+    baseline_result = analyze_file(str(baseline_path))
+    comparison_result = analyze_file(str(comparison_path))
+
+    return baseline_result.bind(
+        lambda baseline_info: comparison_result.map(
+            lambda comparison_info: (baseline_info, comparison_info)
         )
     )
 
 
 def load_csv_dataframes(
     file_infos: tuple[CSVInfo, CSVInfo], paths: tuple[Path, Path]
-) -> Result[tuple[object, object], str]:
+) -> Result[tuple[pl.DataFrame, pl.DataFrame], str]:
     """Load both CSV files as DataFrames (I/O operation)."""
     baseline_info, comparison_info = file_infos
     baseline_path, comparison_path = paths
 
-    return load_dataframe(str(baseline_path), baseline_info).bind(
-        lambda baseline_df: load_dataframe(str(comparison_path), comparison_info).bind(
-            lambda comparison_df: Success((baseline_df, comparison_df))
+    baseline_result = load_dataframe(str(baseline_path), baseline_info)
+    comparison_result = load_dataframe(str(comparison_path), comparison_info)
+
+    return baseline_result.bind(
+        lambda baseline_df: comparison_result.map(
+            lambda comparison_df: (baseline_df, comparison_df)
         )
     )
 
 
 def detect_comparison_dimensions(
-    dataframes: tuple[object, object],
-) -> Result[tuple[object, object, list], str]:
+    dataframes: tuple[pl.DataFrame, pl.DataFrame],
+) -> Result[tuple[pl.DataFrame, pl.DataFrame, List[str]], str]:
     """Detect dimension columns from the baseline DataFrame."""
     baseline_df, comparison_df = dataframes
 
@@ -60,7 +68,7 @@ def detect_comparison_dimensions(
 
 
 def execute_comparison(
-    data: tuple[object, object, list],
+    data: tuple[pl.DataFrame, pl.DataFrame, List[str]],
 ) -> Result[ComparisonResult, str]:
     """Execute the DataFrame comparison."""
     baseline_df, comparison_df, dimension_columns = data
@@ -70,17 +78,22 @@ def execute_comparison(
     )
 
 
+def analyze_and_load_files(
+    paths: tuple[Path, Path],
+) -> Result[tuple[pl.DataFrame, pl.DataFrame], str]:
+    """Analyze file formats and load DataFrames (helper for pipeline)."""
+    return analyze_csv_files(paths).bind(
+        lambda infos: load_csv_dataframes(infos, paths)
+    )
+
+
 def run_csv_diff_pipeline(
     baseline_path: str, comparison_path: str
 ) -> Result[ComparisonResult, str]:
     """Execute the complete CSV diff pipeline."""
     return (
         validate_file_paths(baseline_path, comparison_path)
-        .bind(
-            lambda paths: analyze_csv_files(paths).bind(
-                lambda infos: load_csv_dataframes(infos, paths)
-            )
-        )
+        .bind(analyze_and_load_files)
         .bind(detect_comparison_dimensions)
         .bind(execute_comparison)
     )
