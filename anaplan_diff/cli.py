@@ -1,6 +1,7 @@
 """CLI interface for the Anaplan CSV diff tool."""
 
 from pathlib import Path
+from typing import Annotated
 
 import typer
 from returns.result import Failure, Success
@@ -13,8 +14,8 @@ app = typer.Typer(help="Compare two CSV exports from Anaplan and show changes")
 
 @app.command()
 def diff(
-    baseline: Path = typer.Argument(..., help="Path to the 'baseline' CSV file"),
-    comparison: Path = typer.Argument(..., help="Path to the 'comparison' CSV file"),
+    baseline: Annotated[Path, typer.Argument(help="Path to the 'baseline' CSV file")],
+    comparison: Annotated[Path, typer.Argument(help="Path to the 'comparison' CSV file")],
 ) -> None:
     """Compare two CSV files and display the differences."""
     formatter = TerminalFormatter()
