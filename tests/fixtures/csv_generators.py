@@ -17,8 +17,6 @@ def generate_tabular_single_column_csv(
     measure_data: dict[str, list[float | int | str]],
     encoding: str = "utf-8",
     delimiter: str = ",",
-    add_bom: bool = False,
-    anaplan_page_selector: str | None = None,
 ) -> str:
     """
     Generate CSV content in Anaplan Tabular Single Column format.
@@ -35,21 +33,11 @@ def generate_tabular_single_column_csv(
         measure_data: Dict mapping measure names to their values across columns
         encoding: Text encoding to use
         delimiter: CSV delimiter character
-        add_bom: Whether to add UTF-8 BOM
-        anaplan_page_selector: Optional Anaplan page selector line
 
     Returns:
         CSV content as string in Tabular Single Column format
     """
     output = io.StringIO()
-
-    # Add BOM if requested
-    if add_bom and encoding.lower() in ("utf-8", "utf-8-sig"):
-        output.write("\ufeff")
-
-    # Add Anaplan page selector if provided
-    if anaplan_page_selector:
-        output.write(f"# {anaplan_page_selector}\n")
 
     # Write dimension rows
     for dim_name, dim_values in dimension_data.items():
