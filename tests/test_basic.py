@@ -16,7 +16,9 @@ class TestCSVInfo:
 
     def test_csv_info_creation(self):
         """Test creating a CSVInfo instance."""
-        csv_info = CSVInfo(encoding="utf-8", delimiter=",", has_header=True, skip_rows=0)
+        csv_info = CSVInfo(
+            encoding="utf-8", delimiter=",", has_header=True, skip_rows=0
+        )
         assert csv_info.encoding == "utf-8"
         assert csv_info.delimiter == ","
         assert csv_info.has_header is True
@@ -52,7 +54,9 @@ class TestDataComparison:
         before_df = pl.DataFrame(before_data)
         after_df = pl.DataFrame(after_data)
 
-        result = compare_dataframes(before_df, after_df, dimension_columns=["Region", "Product"])
+        result = compare_dataframes(
+            before_df, after_df, dimension_columns=["Region", "Product"]
+        )
         assert isinstance(result, Success)
         result = result.unwrap()
 
@@ -152,7 +156,9 @@ class TestDataComparison:
         before_df = pl.DataFrame(before_data)
         after_df = pl.DataFrame(after_data)
 
-        result = compare_dataframes(before_df, after_df, ["Region"], comparison_tolerance=1.0)
+        result = compare_dataframes(
+            before_df, after_df, ["Region"], comparison_tolerance=1.0
+        )
         assert isinstance(result, Success)
         result = result.unwrap()
 

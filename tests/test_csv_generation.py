@@ -63,7 +63,9 @@ class TestBasicCSVGeneration:
         headers = ["A", "B"]
         data = [["1", "2"]]
 
-        result = generate_basic_csv(data, headers, anaplan_page_selector="Page Selector: All Items")
+        result = generate_basic_csv(
+            data, headers, anaplan_page_selector="Page Selector: All Items"
+        )
 
         expected = "# Page Selector: All Items\nA,B\n1,2\n"
         assert result == expected
@@ -229,7 +231,9 @@ class TestTestCsvPairCreation:
 
     def test_create_test_csv_pair_different_scenario(self, temp_dir):
         """Test creating CSV pair with different scenario."""
-        baseline_path, comparison_path = create_test_csv_pair("single_value_change", temp_dir)
+        baseline_path, comparison_path = create_test_csv_pair(
+            "single_value_change", temp_dir
+        )
 
         baseline_content = baseline_path.read_text()
         comparison_content = comparison_path.read_text()
@@ -257,7 +261,9 @@ class TestCSVContentValidation:
             "dimension_detection_test",
         ],
     )
-    def test_all_scenarios_generate_valid_csv(self, scenario_name, temp_dir, csv_validator):
+    def test_all_scenarios_generate_valid_csv(
+        self, scenario_name, temp_dir, csv_validator
+    ):
         """Test that all scenarios generate valid CSV files."""
         baseline_path, comparison_path = create_test_csv_pair(scenario_name, temp_dir)
 
@@ -266,7 +272,9 @@ class TestCSVContentValidation:
         comparison_info = csv_validator.get_csv_info(comparison_path)
 
         # Should not have errors
-        assert "error" not in baseline_info, f"Baseline file error: {baseline_info.get('error')}"
+        assert "error" not in baseline_info, (
+            f"Baseline file error: {baseline_info.get('error')}"
+        )
         assert "error" not in comparison_info, (
             f"Comparison file error: {comparison_info.get('error')}"
         )

@@ -9,7 +9,9 @@ from .comparator import ComparisonResult, compare_dataframes
 from .detector import CSVInfo, analyze_file, detect_dimensions, load_dataframe
 
 
-def validate_file_paths(baseline_path: str, comparison_path: str) -> Result[tuple[Path, Path], str]:
+def validate_file_paths(
+    baseline_path: str, comparison_path: str
+) -> Result[tuple[Path, Path], str]:
     """Validate that both file paths exist."""
     baseline = Path(baseline_path)
     comparison = Path(comparison_path)
@@ -79,7 +81,9 @@ def analyze_and_load_files(
     paths: tuple[Path, Path],
 ) -> Result[tuple[pl.DataFrame, pl.DataFrame], str]:
     """Analyze file formats and load DataFrames (helper for pipeline)."""
-    return analyze_csv_files(paths).bind(lambda infos: load_csv_dataframes(infos, paths))
+    return analyze_csv_files(paths).bind(
+        lambda infos: load_csv_dataframes(infos, paths)
+    )
 
 
 def run_csv_diff_pipeline(

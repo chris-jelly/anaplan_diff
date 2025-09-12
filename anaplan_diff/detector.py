@@ -66,7 +66,9 @@ def detect_dimensions(df: pl.DataFrame) -> Result[list[str], str]:
     # All columns except last are dimensions
     dimension_columns = df.columns[:-1]
 
-    return _validate_dimensions(df, dimension_columns).bind(lambda _: Success(dimension_columns))
+    return _validate_dimensions(df, dimension_columns).bind(
+        lambda _: Success(dimension_columns)
+    )
 
 
 # Private helper functions
@@ -99,7 +101,9 @@ def _read_sample_lines(path: Path, encoding: str) -> Result[tuple[str, list[str]
         return Failure(f"Could not read file: {e}")
 
 
-def _analyze_csv_structure(path: Path, encoding: str, lines: list[str]) -> Result[CSVInfo, str]:
+def _analyze_csv_structure(
+    path: Path, encoding: str, lines: list[str]
+) -> Result[CSVInfo, str]:
     """Analyze CSV structure from sample lines."""
     skip_rows = _count_page_selector_lines(lines)
     data_lines = lines[skip_rows:]
@@ -206,7 +210,9 @@ def _detect_format_type(
         return Failure(f"Could not read CSV file: {e}")
 
 
-def _validate_dimensions(df: pl.DataFrame, dimension_columns: list[str]) -> Result[None, str]:
+def _validate_dimensions(
+    df: pl.DataFrame, dimension_columns: list[str]
+) -> Result[None, str]:
     """Validate that columns are suitable as dimensions."""
     for col in dimension_columns:
         col_data = df.select(pl.col(col)).to_series()

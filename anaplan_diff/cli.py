@@ -15,7 +15,9 @@ app = typer.Typer(help="Compare two CSV exports from Anaplan and show changes")
 @app.command()
 def diff(
     baseline: Annotated[Path, typer.Argument(help="Path to the 'baseline' CSV file")],
-    comparison: Annotated[Path, typer.Argument(help="Path to the 'comparison' CSV file")],
+    comparison: Annotated[
+        Path, typer.Argument(help="Path to the 'comparison' CSV file")
+    ],
 ) -> None:
     """Compare two CSV files and display the differences."""
     formatter = TerminalFormatter()

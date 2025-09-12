@@ -13,7 +13,9 @@ class TestCLIBasicFunctionality:
 
     def test_cli_with_identical_files(self, cli_helper):
         """Test CLI behavior when files are identical."""
-        baseline_file, comparison_file = cli_helper.create_scenario_files("identical_files")
+        baseline_file, comparison_file = cli_helper.create_scenario_files(
+            "identical_files"
+        )
 
         result = cli_helper.run_cli_command(baseline_file, comparison_file)
 
@@ -37,7 +39,9 @@ class TestCLIBasicFunctionality:
 
     def test_cli_with_single_value_change(self, cli_helper):
         """Test CLI with a single changed value."""
-        baseline_file, comparison_file = cli_helper.create_scenario_files("single_value_change")
+        baseline_file, comparison_file = cli_helper.create_scenario_files(
+            "single_value_change"
+        )
 
         result = cli_helper.run_cli_command(baseline_file, comparison_file)
 
@@ -68,7 +72,9 @@ class TestCLIAdvancedScenarios:
 
     def test_cli_with_multiple_changes(self, cli_helper):
         """Test CLI with multiple types of changes."""
-        baseline_file, comparison_file = cli_helper.create_scenario_files("multiple_changes")
+        baseline_file, comparison_file = cli_helper.create_scenario_files(
+            "multiple_changes"
+        )
 
         result = cli_helper.run_cli_command(baseline_file, comparison_file)
 
@@ -81,7 +87,9 @@ class TestCLIFormatHandling:
 
     def test_cli_with_different_formats(self, cli_helper):
         """Test CLI with different CSV formatting."""
-        baseline_file, comparison_file = cli_helper.create_scenario_files("different_formats")
+        baseline_file, comparison_file = cli_helper.create_scenario_files(
+            "different_formats"
+        )
 
         result = cli_helper.run_cli_command(baseline_file, comparison_file)
 
@@ -131,7 +139,9 @@ class TestCLIEndToEnd:
     def test_complete_workflow_identical_files(self, cli_helper, csv_validator):
         """Test complete workflow with identical files."""
         # Generate test files
-        baseline_file, comparison_file = cli_helper.create_scenario_files("identical_files")
+        baseline_file, comparison_file = cli_helper.create_scenario_files(
+            "identical_files"
+        )
 
         # Validate the test files were created correctly
         baseline_info = csv_validator.get_csv_info(baseline_file)
@@ -155,7 +165,9 @@ class TestCLIEndToEnd:
     def test_complete_workflow_with_changes(self, cli_helper, csv_validator):
         """Test complete workflow with actual changes."""
         # Generate test files with known differences
-        baseline_file, comparison_file = cli_helper.create_scenario_files("single_value_change")
+        baseline_file, comparison_file = cli_helper.create_scenario_files(
+            "single_value_change"
+        )
 
         # Validate test file generation
         baseline_info = csv_validator.get_csv_info(baseline_file)
