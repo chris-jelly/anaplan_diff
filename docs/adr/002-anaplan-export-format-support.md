@@ -19,9 +19,9 @@ Anaplan provides three export formats:
 ### 2. Tabular Single Column Format (Supported)
 - **Structure**: Line Item | Dimension 1 | Dimension 2 | ... | Dimension N | Value
 - **Characteristics**:
-  - First column always contains the line item name
-  - Followed by dimension columns (e.g., Time, Product, Region, etc.)
-  - Final column contains the numeric value
+  - First column ALWAYS contains the line item name from the module
+  - Last column ALWAYS contains the value for that line item
+  - All columns between first and last are ALWAYS dimensions of the module
   - Each row represents a single data point
   - Most commonly used for structured analysis
 
@@ -50,11 +50,10 @@ The `FileAnalyzer` class will detect Tabular Single Column format by:
 - Confirming single-value-per-row structure
 
 ### Dimension Detection Strategy
-The `DimensionDetector` will identify dimensions using these heuristics:
-- **All columns except the last** are treated as potential dimensions
-- **Line Item Column**: First column is always a dimension (line item names)
-- **Dimension Columns**: Columns 2 through N-1 with categorical data
-- **Value Column**: Final column with numeric data
+The `DimensionDetector` will identify dimensions using this structure:
+- **Line Item Column**: First column is ALWAYS the line item name from the module
+- **Dimension Columns**: All columns between first and last are ALWAYS dimensions of the module
+- **Value Column**: Last column is ALWAYS the value for the associated line item
 
 ### Data Structure
 ```python
@@ -67,7 +66,7 @@ The `DimensionDetector` will identify dimensions using these heuristics:
 
 ### Comparison Key
 Rows will be compared using a composite key of:
-- Line Item + all dimension values (excluding the final Value column)
+- Line Item (first column) + all dimension values (all columns between first and last)
 - This ensures proper matching between baseline/comparison exports
 
 ## Consequences
