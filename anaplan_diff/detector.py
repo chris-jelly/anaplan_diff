@@ -1,4 +1,11 @@
-"""CSV file analysis and dimension detection."""
+"""
+CSV file analysis and dimension detection.
+
+Implements position-based dimension detection for Tabular Single Column format:
+- First column: ALWAYS line item name from module (dimension)
+- Last column: ALWAYS value for that line item (measure)
+- Middle columns: ALWAYS dimensions of the module
+"""
 
 from pathlib import Path
 
@@ -59,16 +66,24 @@ def load_dataframe(file_path: str, csv_info: CSVInfo) -> Result[pl.DataFrame, st
 
 
 def detect_dimensions(df: pl.DataFrame) -> Result[list[str], str]:
-    """Detect dimension columns in DataFrame."""
+    """
+    Detect dimension columns in DataFrame using Tabular Single Column format structure.
+
+    For Tabular Single Column format:
+    - First column: ALWAYS line item name from module (dimension)
+    - Last column: ALWAYS value for that line item (measure)
+    - All middle columns: ALWAYS dimensions of the module
+    """
     if df.shape[1] < 2:
         return Failure("DataFrame must have at least 2 columns")
 
-    # All columns except last are dimensions
-    dimension_columns = df.columns[:-1]
+    columns = df.columns
 
-    return _validate_dimensions(df, dimension_columns).bind(
-        lambda _: Success(dimension_columns)
-    )
+    # First column is always line item (dimension)
+    # All columns except last are dimensions
+    dimension_columns = columns[:-1]
+
+    return Success(list(dimension_columns))
 
 
 # Private helper functions
@@ -182,7 +197,12 @@ def _has_header(lines: list[str], delimiter: str) -> bool:
 def _detect_format_type(
     path: Path, encoding: str, delimiter: str, skip_rows: int
 ) -> Result[str, str]:
-    """Detect if file matches tabular single column format (I/O operation)."""
+    """
+    Detect if file matches Tabular Single Column format.
+
+    Validates that the last column contains numeric values (measures),
+    which is required for the guaranteed structure.
+    """
     try:
         df = pl.read_csv(
             path,
@@ -208,38 +228,3 @@ def _detect_format_type(
 
     except Exception as e:
         return Failure(f"Could not read CSV file: {e}")
-
-
-def _validate_dimensions(
-    df: pl.DataFrame, dimension_columns: list[str]
-) -> Result[None, str]:
-    """Validate that columns are suitable as dimensions."""
-    for col in dimension_columns:
-        col_data = df.select(pl.col(col)).to_series()
-        if not _is_valid_dimension(col_data, col):
-            return Failure(f"Column '{col}' does not appear to be a valid dimension")
-    return Success(None)
-
-
-def _is_valid_dimension(series: pl.Series, col_name: str) -> bool:
-    """Check if a series represents a valid dimension."""
-    non_null_series = series.drop_nulls()
-
-    if len(non_null_series) == 0:
-        return False
-
-    dtype = series.dtype
-
-    # String/text columns are typically dimensions
-    if dtype in [pl.Utf8, pl.String]:
-        return True
-
-    # Numeric columns can be dimensions
-    if dtype in [pl.Int32, pl.Int64, pl.Float32, pl.Float64]:
-        return True
-
-    # Date/boolean columns are typically dimensions
-    if dtype in [pl.Date, pl.Datetime, pl.Boolean]:
-        return True
-
-    return False
