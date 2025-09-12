@@ -4,14 +4,7 @@ import attrs
 import polars as pl
 from returns.result import Failure, Result, Success
 
-try:
-    from tests.fixtures.csv_generators import AnaplanFormat
-except ImportError:
-    from enum import Enum
-
-    class AnaplanFormat(Enum):
-        TABULAR_SINGLE_COLUMN = "tabular_single_column"
-        TABULAR_MULTI_COLUMN = "tabular_multi_column"
+from anaplan_diff.types import AnaplanFormat
 
 
 @attrs.frozen
