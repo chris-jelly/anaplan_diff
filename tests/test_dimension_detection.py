@@ -1,93 +1,96 @@
 """
 Tests for dimension detection functionality.
 
-This tests the core business logic for automatically identifying
-dimension columns vs measure columns in CSV data.
+Tests the position-based logic for identifying dimension columns in
+Tabular Single Column format where:
+- First column: ALWAYS line item name (dimension)
+- Last column: ALWAYS value (measure)
+- Middle columns: ALWAYS dimensions
 """
 
 import polars as pl
-import pytest
 from returns.result import Failure, Success
 
 from anaplan_diff.detector import detect_dimensions
 
 
 class TestDimensionDetection:
-    """Test automatic dimension column detection."""
+    """Test position-based dimension detection for Tabular Single Column format."""
 
-    def test_detect_text_columns_as_dimensions(self):
-        """Text columns should be identified as dimensions."""
+    def test_basic_three_column_structure(self):
+        """Test basic 3-column structure: Line Item | Dimension | Value."""
         df = pl.DataFrame(
             {
+                "Line_Item": ["Revenue", "Costs", "Profit"],
                 "Region": ["North", "South", "East"],
-                "Product": ["Widget A", "Widget B", "Widget C"],
-                "Sales": [1000, 2000, 1500],
+                "Value": [1000, 2000, 1500],
             }
         )
 
         result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        assert "Region" in dimensions
-        assert "Product" in dimensions
-        assert "Sales" not in dimensions
+        assert "Line_Item" in dimensions  # First column always dimension
+        assert "Region" in dimensions  # Middle column always dimension
+        assert "Value" not in dimensions  # Last column never dimension
 
-    def test_detect_low_cardinality_numeric_as_dimensions(self):
-        """Low cardinality numeric columns should be identified as dimensions."""
+    def test_multiple_dimension_columns(self):
+        """Test structure with multiple dimension columns."""
         df = pl.DataFrame(
             {
-                "Category_ID": [1, 2, 1, 2, 1],  # Low cardinality
-                "Product_ID": [101, 102, 103, 104, 105],  # High cardinality
-                "Revenue": [1000.5, 2000.7, 1500.3, 800.9, 1200.1],
+                "Line_Item": ["Revenue", "Costs"],
+                "Time": ["2024-01", "2024-01"],
+                "Product": ["Widget A", "Widget A"],
+                "Region": ["North", "South"],
+                "Value": [1000.5, 800.9],
             }
         )
 
         result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        assert "Category_ID" in dimensions
-        assert "Product_ID" not in dimensions  # High cardinality numeric
-        assert "Revenue" not in dimensions
+        assert "Line_Item" in dimensions  # First column
+        assert "Time" in dimensions  # Middle column
+        assert "Product" in dimensions  # Middle column
+        assert "Region" in dimensions  # Middle column
+        assert "Value" not in dimensions  # Last column (measure)
 
-    def test_detect_anaplan_keywords_as_dimensions(self):
-        """Columns with Anaplan-specific keywords should be dimensions."""
+    def test_two_column_structure(self):
+        """Test minimum 2-column structure: Line Item | Value."""
         df = pl.DataFrame(
             {
-                "Time": ["2024-01", "2024-02", "2024-03"],
-                "Location": ["NYC", "LA", "CHI"],
-                "Account": ["Revenue", "Cost", "Profit"],
-                "Amount": [1000, 2000, 1500],
+                "Line_Item": ["Revenue", "Costs", "Profit"],
+                "Value": [1000, 500, 500],
             }
         )
 
         result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        assert "Time" in dimensions
-        assert "Location" in dimensions
-        assert "Account" in dimensions
-        assert "Amount" not in dimensions
+        assert "Line_Item" in dimensions  # First column always dimension
+        assert "Value" not in dimensions  # Last column never dimension
+        assert len(dimensions) == 1  # Only one dimension
 
-    def test_mixed_column_types(self):
-        """Test detection with mixed column types."""
+    def test_data_types_irrelevant_to_position(self):
+        """Test that data types don't affect position-based detection."""
         df = pl.DataFrame(
             {
-                "ID": [1, 2, 3],  # Low cardinality numeric
-                "Name": ["A", "B", "C"],  # Text
-                "Active": [True, False, True],  # Boolean (should be dimension)
-                "Score": [95.5, 87.2, 91.8],  # Numeric measure
-                "Count": [100, 200, 150],  # Numeric measure
+                "LineItem": [1, 2, 3],  # Numeric line item (still dimension)
+                "TextDim": ["A", "B", "C"],  # Text dimension
+                "NumericDim": [100, 200, 300],  # Numeric dimension
+                "BoolDim": [True, False, True],  # Boolean dimension
+                "Measure": [95.5, 87.2, 91.8],  # Final measure column
             }
         )
 
         result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        assert "ID" in dimensions
-        assert "Name" in dimensions
-        assert "Active" in dimensions
-        assert "Score" not in dimensions
-        assert "Count" not in dimensions
+        assert "LineItem" in dimensions  # First column (even though numeric)
+        assert "TextDim" in dimensions  # Middle column
+        assert "NumericDim" in dimensions  # Middle column (even though numeric)
+        assert "BoolDim" in dimensions  # Middle column
+        assert "Measure" not in dimensions  # Last column (never dimension)
 
     def test_empty_dataframe(self):
         """Empty DataFrame should return appropriate error."""
@@ -96,115 +99,115 @@ class TestDimensionDetection:
         assert isinstance(result, Failure)
 
     def test_single_column_dataframe(self):
-        """Single column DataFrame should be handled appropriately."""
+        """Single column DataFrame should return Failure (invalid format)."""
         df = pl.DataFrame({"Only_Column": ["A", "B", "C"]})
         result = detect_dimensions(df)
-        assert isinstance(result, Success)
-        dimensions = result.unwrap()
-        assert "Only_Column" in dimensions
+        assert isinstance(result, Failure)
 
-    def test_all_numeric_high_cardinality(self):
-        """DataFrame with all high-cardinality numeric columns."""
+    def test_all_numeric_columns(self):
+        """All numeric columns still follow position-based rules."""
         df = pl.DataFrame(
             {
-                "Value1": [1.1, 2.2, 3.3, 4.4, 5.5],
-                "Value2": [10.1, 20.2, 30.3, 40.4, 50.5],
-                "Value3": [100, 200, 300, 400, 500],
+                "LineItem_ID": [1, 2, 3, 4, 5],  # First = dimension (even numeric)
+                "Category_ID": [
+                    10,
+                    20,
+                    30,
+                    40,
+                    50,
+                ],  # Middle = dimension (even numeric)
+                "Amount": [100, 200, 300, 400, 500],  # Last = measure
             }
         )
 
         result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        # Should have some fallback behavior - perhaps treat first column as dimension
-        # or use some other heuristic
-        assert len(dimensions) >= 1  # Should identify at least one dimension
+        assert "LineItem_ID" in dimensions  # First column always dimension
+        assert "Category_ID" in dimensions  # Middle column always dimension
+        assert "Amount" not in dimensions  # Last column never dimension
 
-    def test_date_columns_as_dimensions(self):
-        """Date/datetime columns should be identified as dimensions."""
+    def test_various_data_types_in_guaranteed_positions(self):
+        """Various data types in their guaranteed positions."""
         df = pl.DataFrame(
             {
-                "Date": ["2024-01-01", "2024-01-02", "2024-01-03"],
-                "Month": ["Jan", "Jan", "Jan"],
-                "Sales": [1000, 1100, 1200],
+                "LineItem": ["Revenue", "Costs", "Profit"],  # Text line item
+                "Date": ["2024-01-01", "2024-01-02", "2024-01-03"],  # Date dimension
+                "Active": [True, False, True],  # Boolean dimension
+                "Amount": [1000, 1100, 1200],  # Numeric measure
             }
         )
 
         result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        assert "Date" in dimensions
-        assert "Month" in dimensions
-        assert "Sales" not in dimensions
+        assert "LineItem" in dimensions  # First column
+        assert "Date" in dimensions  # Middle column
+        assert "Active" in dimensions  # Middle column
+        assert "Amount" not in dimensions  # Last column
 
-    def test_cardinality_threshold(self):
-        """Test that cardinality threshold works correctly."""
-        # High cardinality - each value unique
-        high_card_df = pl.DataFrame(
+    def test_large_dataset_structure(self):
+        """Test position-based detection works with large datasets."""
+        # Create larger dataset to ensure position logic is robust
+        df = pl.DataFrame(
             {
-                "ID": list(range(100)),  # 100 unique values
-                "Value": [i * 10 for i in range(100)],
+                "LineItem": ["Revenue", "Costs"] * 50,  # 100 rows, repeated line items
+                "Time": [f"2024-{i:02d}" for i in range(1, 13)] * 8 + ["2024-01"] * 4,
+                "Value": list(range(100)),  # 100 unique values
             }
         )
 
-        result = detect_dimensions(high_card_df)
+        result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        # With high cardinality, ID might not be detected as dimension
-        # depending on threshold logic
-
-        # Low cardinality - repeated values
-        low_card_df = pl.DataFrame(
-            {
-                "Category": [1, 2, 1, 2] * 25,  # Only 2 unique values, 100 total rows
-                "Value": list(range(100)),
-            }
-        )
-
-        result = detect_dimensions(low_card_df)
-        assert isinstance(result, Success)
-        dimensions = result.unwrap()
-        assert "Category" in dimensions
-        assert "Value" not in dimensions
+        assert "LineItem" in dimensions  # First column always dimension
+        assert "Time" in dimensions  # Middle column always dimension
+        assert "Value" not in dimensions  # Last column never dimension
 
 
 class TestDimensionDetectionEdgeCases:
     """Test edge cases in dimension detection."""
 
     def test_columns_with_nulls(self):
-        """Columns with null values should still be processed."""
+        """Columns with null values should still be processed based on position."""
         df = pl.DataFrame(
             {
+                "LineItem": ["Revenue", None, "Costs"],
                 "Region": ["North", None, "South"],
-                "Sales": [1000, None, 2000],
+                "Value": [1000, None, 2000],
             }
         )
 
         result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        assert "Region" in dimensions
+        assert "LineItem" in dimensions  # First column always dimension
+        assert "Region" in dimensions  # Middle column always dimension
+        assert "Value" not in dimensions  # Last column never dimension
 
-    def test_numeric_strings(self):
-        """Numeric strings should be treated as text (dimensions)."""
+    def test_numeric_strings_follow_position_rules(self):
+        """Numeric strings follow position rules regardless of content."""
         df = pl.DataFrame(
             {
-                "Product_Code": ["001", "002", "003"],  # Numeric strings
-                "Amount": [1000, 2000, 3000],  # Actual numbers
+                "Product_Code": ["001", "002", "003"],  # First column = dimension
+                "Category_Code": ["100", "200", "300"],  # Middle column = dimension
+                "Amount": [1000, 2000, 3000],  # Last column = measure
             }
         )
 
         result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        assert "Product_Code" in dimensions
-        assert "Amount" not in dimensions
+        assert "Product_Code" in dimensions  # First column
+        assert "Category_Code" in dimensions  # Middle column
+        assert "Amount" not in dimensions  # Last column
 
-    def test_very_long_text_values(self):
-        """Very long text values should still be dimensions."""
+    def test_very_long_text_values_follow_position_rules(self):
+        """Very long text values follow position rules."""
         df = pl.DataFrame(
             {
                 "Description": ["Very long product description " * 10] * 3,
+                "Category": ["A", "B", "C"],
                 "Sales": [1000, 2000, 3000],
             }
         )
@@ -212,46 +215,85 @@ class TestDimensionDetectionEdgeCases:
         result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        assert "Description" in dimensions
-        assert "Sales" not in dimensions
+        assert "Description" in dimensions  # First column
+        assert "Category" in dimensions  # Middle column
+        assert "Sales" not in dimensions  # Last column
 
-
-class TestDimensionDetectionConfiguration:
-    """Test dimension detection with different configuration options."""
-
-    def test_custom_cardinality_threshold(self):
-        """Test detection with custom cardinality threshold."""
+    def test_mixed_null_patterns(self):
+        """Mixed null patterns don't affect position-based detection."""
         df = pl.DataFrame(
             {
-                "ID": [1, 2, 3, 4, 5],  # 5 unique values
-                "Value": [100, 200, 300, 400, 500],
+                "LineItem": [None, "Revenue", None],  # First = dimension (with nulls)
+                "Time": ["2024-01", None, "2024-03"],  # Middle = dimension (with nulls)
+                "Region": [None, None, "North"],  # Middle = dimension (mostly nulls)
+                "Value": [None, 1000, 2000],  # Last = measure (with nulls)
             }
         )
 
-        # With high threshold, ID should be dimension
-        result = detect_dimensions(df, cardinality_threshold=0.8)
+        result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        assert "ID" in dimensions
+        assert "LineItem" in dimensions  # First column
+        assert "Time" in dimensions  # Middle column
+        assert "Region" in dimensions  # Middle column
+        assert "Value" not in dimensions  # Last column
 
-        # With low threshold, ID might not be dimension
-        result = detect_dimensions(df, cardinality_threshold=0.2)
-        assert isinstance(result, Success)
-        dimensions = result.unwrap()
-        # Behavior depends on implementation
 
-    def test_custom_anaplan_keywords(self):
-        """Test detection with custom Anaplan keyword list."""
+class TestDimensionDetectionExactColumnCount:
+    """Test that exact column counts work correctly."""
+
+    def test_minimum_columns_exactly_two(self):
+        """Exactly 2 columns: first is dimension, last is measure."""
         df = pl.DataFrame(
             {
-                "CustomDimension": ["A", "B", "C"],
-                "RegularColumn": ["X", "Y", "Z"],
-                "Value": [1, 2, 3],
+                "LineItem": ["A", "B"],
+                "Measure": [1, 2],
             }
         )
 
-        custom_keywords = ["CustomDimension"]
-        result = detect_dimensions(df, anaplan_keywords=custom_keywords)
+        result = detect_dimensions(df)
         assert isinstance(result, Success)
         dimensions = result.unwrap()
-        assert "CustomDimension" in dimensions
+        assert len(dimensions) == 1
+        assert dimensions[0] == "LineItem"
+
+    def test_three_columns_exactly(self):
+        """Exactly 3 columns: first and middle are dimensions."""
+        df = pl.DataFrame(
+            {
+                "LineItem": ["A", "B"],
+                "Dimension": ["X", "Y"],
+                "Measure": [1, 2],
+            }
+        )
+
+        result = detect_dimensions(df)
+        assert isinstance(result, Success)
+        dimensions = result.unwrap()
+        assert len(dimensions) == 2
+        assert "LineItem" in dimensions
+        assert "Dimension" in dimensions
+
+    def test_many_columns(self):
+        """Many columns: all except last are dimensions."""
+        df = pl.DataFrame(
+            {
+                "LineItem": ["A"],
+                "Dim1": ["X"],
+                "Dim2": ["Y"],
+                "Dim3": ["Z"],
+                "Dim4": ["W"],
+                "Dim5": ["V"],
+                "Measure": [1],
+            }
+        )
+
+        result = detect_dimensions(df)
+        assert isinstance(result, Success)
+        dimensions = result.unwrap()
+        assert len(dimensions) == 6  # All except last
+        assert "Measure" not in dimensions
+        assert all(
+            col in dimensions
+            for col in ["LineItem", "Dim1", "Dim2", "Dim3", "Dim4", "Dim5"]
+        )
