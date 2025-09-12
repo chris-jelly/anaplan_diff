@@ -30,7 +30,7 @@ def cli_runner():
 @pytest.fixture
 def csv_file_pair(temp_dir):
     """Create a basic pair of CSV test files."""
-    return create_test_csv_pair("identical_files", temp_dir, "basic")
+    return create_test_csv_pair("identical_files", temp_dir, file_prefix="basic")
 
 
 class CLITestHelper:
@@ -74,7 +74,7 @@ class CLITestHelper:
         Returns:
             Tuple of (baseline_file_path, comparison_file_path)
         """
-        return create_test_csv_pair(scenario_name, self.temp_dir, prefix)
+        return create_test_csv_pair(scenario_name, self.temp_dir, file_prefix=prefix)
 
     def assert_cli_output_contains(
         self, result: Any, expected_texts: list[str]
