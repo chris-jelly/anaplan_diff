@@ -61,9 +61,7 @@ class CLITestHelper:
 
         return result
 
-    def create_scenario_files(
-        self, scenario_name: str, prefix: str = "test"
-    ) -> tuple[Path, Path]:
+    def create_scenario_files(self, scenario_name: str, prefix: str = "test") -> tuple[Path, Path]:
         """
         Create CSV files for a specific test scenario.
 
@@ -76,9 +74,7 @@ class CLITestHelper:
         """
         return create_test_csv_pair(scenario_name, self.temp_dir, prefix)
 
-    def assert_cli_output_contains(
-        self, result: Any, expected_texts: list[str]
-    ) -> None:
+    def assert_cli_output_contains(self, result: Any, expected_texts: list[str]) -> None:
         """
         Assert that CLI output contains all expected text fragments.
 
@@ -88,9 +84,7 @@ class CLITestHelper:
         """
         output = result.stdout
         for expected_text in expected_texts:
-            assert expected_text in output, (
-                f"Expected '{expected_text}' in output: {output}"
-            )
+            assert expected_text in output, f"Expected '{expected_text}' in output: {output}"
 
     def assert_cli_success(self, result: Any) -> None:
         """Assert that CLI command executed successfully."""
@@ -115,9 +109,7 @@ class CSVValidationHelper:
     """Helper class for validating CSV content and structure."""
 
     @staticmethod
-    def validate_csv_content(
-        file_path: Path, expected_rows: int, expected_columns: int
-    ) -> bool:
+    def validate_csv_content(file_path: Path, expected_rows: int, expected_columns: int) -> bool:
         """
         Validate that a CSV file has expected structure.
 
@@ -156,7 +148,7 @@ class CSVValidationHelper:
                 "rows": df.height,
                 "columns": df.width,
                 "column_names": df.columns,
-                "dtypes": dict(zip(df.columns, df.dtypes)),
+                "dtypes": dict(zip(df.columns, df.dtypes, strict=False)),
                 "has_nulls": df.null_count().sum_horizontal().item() > 0,
             }
         except Exception as e:

@@ -8,7 +8,7 @@ that can be used to test the CLI tool's functionality.
 import io
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 
 class AnaplanFormat(Enum):
@@ -24,7 +24,7 @@ def generate_tabular_single_column_csv(
     encoding: str = "utf-8",
     delimiter: str = ",",
     add_bom: bool = False,
-    anaplan_page_selector: Optional[str] = None,
+    anaplan_page_selector: str | None = None,
 ) -> str:
     """
     Generate CSV content in Anaplan Tabular Single Column format.
@@ -76,7 +76,7 @@ def generate_csv_with_format(
     encoding: str = "utf-8",
     delimiter: str = ",",
     add_bom: bool = False,
-    anaplan_page_selector: Optional[str] = None,
+    anaplan_page_selector: str | None = None,
 ) -> str:
     """
     Generate CSV content based on the specified Anaplan format.
@@ -120,11 +120,11 @@ def generate_csv_with_format(
 
 def generate_basic_csv(
     data: list[list[Any]],
-    headers: Optional[list[str]] = None,
+    headers: list[str] | None = None,
     encoding: str = "utf-8",
     delimiter: str = ",",
     add_bom: bool = False,
-    anaplan_page_selector: Optional[str] = None,
+    anaplan_page_selector: str | None = None,
 ) -> str:
     """
     Generate a CSV string with the specified parameters.
@@ -161,9 +161,7 @@ def generate_basic_csv(
     return output.getvalue()
 
 
-def save_csv_file(
-    file_path: Union[str, Path], content: str, encoding: str = "utf-8"
-) -> None:
+def save_csv_file(file_path: str | Path, content: str, encoding: str = "utf-8") -> None:
     """
     Save CSV content to a file.
 
@@ -367,9 +365,7 @@ class TestScenarios:
         }
 
         data = {"dimensions": dimensions, "measures": measures}
-        csv_content = generate_csv_with_format(
-            AnaplanFormat.TABULAR_SINGLE_COLUMN, data
-        )
+        csv_content = generate_csv_with_format(AnaplanFormat.TABULAR_SINGLE_COLUMN, data)
         return csv_content, csv_content
 
     @staticmethod
@@ -392,9 +388,7 @@ class TestScenarios:
         baseline_data = {"dimensions": dimensions, "measures": baseline_measures}
         comparison_data = {"dimensions": dimensions, "measures": comparison_measures}
 
-        baseline_csv = generate_csv_with_format(
-            AnaplanFormat.TABULAR_SINGLE_COLUMN, baseline_data
-        )
+        baseline_csv = generate_csv_with_format(AnaplanFormat.TABULAR_SINGLE_COLUMN, baseline_data)
         comparison_csv = generate_csv_with_format(
             AnaplanFormat.TABULAR_SINGLE_COLUMN, comparison_data
         )
@@ -402,7 +396,8 @@ class TestScenarios:
 
     @staticmethod
     def tabular_single_column_column_added() -> tuple[str, str]:
-        """Generate CSV files in Tabular Single Column format where a column is added."""
+        """Generate CSV files in Tabular Single Column format where a column is
+        added."""
         baseline_dimensions = {
             "Region": ["North", "South"],
             "Product": ["Widget A", "Widget B"],
@@ -430,9 +425,7 @@ class TestScenarios:
             "measures": comparison_measures,
         }
 
-        baseline_csv = generate_csv_with_format(
-            AnaplanFormat.TABULAR_SINGLE_COLUMN, baseline_data
-        )
+        baseline_csv = generate_csv_with_format(AnaplanFormat.TABULAR_SINGLE_COLUMN, baseline_data)
         comparison_csv = generate_csv_with_format(
             AnaplanFormat.TABULAR_SINGLE_COLUMN, comparison_data
         )
@@ -440,7 +433,8 @@ class TestScenarios:
 
     @staticmethod
     def tabular_single_column_multiple_changes() -> tuple[str, str]:
-        """Generate CSV files in Tabular Single Column format with multiple types of changes."""
+        """Generate CSV files in Tabular Single Column format with multiple types of
+        changes."""
         baseline_dimensions = {
             "Region": ["North", "South", "East", "West"],
             "Product": ["Widget A", "Widget B", "Widget C", "Widget D"],
@@ -483,9 +477,7 @@ class TestScenarios:
             "measures": comparison_measures,
         }
 
-        baseline_csv = generate_csv_with_format(
-            AnaplanFormat.TABULAR_SINGLE_COLUMN, baseline_data
-        )
+        baseline_csv = generate_csv_with_format(AnaplanFormat.TABULAR_SINGLE_COLUMN, baseline_data)
         comparison_csv = generate_csv_with_format(
             AnaplanFormat.TABULAR_SINGLE_COLUMN, comparison_data
         )

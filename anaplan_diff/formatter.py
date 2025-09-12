@@ -2,7 +2,6 @@
 Terminal output formatting using Rich library.
 """
 
-from typing import Optional
 import attrs
 from rich.console import Console
 from rich.table import Table
@@ -15,9 +14,9 @@ class FormattedOutput:
     """Immutable structured output for terminal display."""
 
     summary: str
-    changes_table: Optional[str] = None
-    additions_table: Optional[str] = None
-    removals_table: Optional[str] = None
+    changes_table: str | None = None
+    additions_table: str | None = None
+    removals_table: str | None = None
     overall_status: str = ""
 
 
@@ -116,9 +115,7 @@ def _format_changes(result: ComparisonResult) -> str:
     console = Console(file=None, width=120)
 
     with console.capture() as capture:
-        console.print(
-            f"\n🔄 [bold yellow]Changed Rows ({len(result.changed_rows)})[/bold yellow]"
-        )
+        console.print(f"\n🔄 [bold yellow]Changed Rows ({len(result.changed_rows)})[/bold yellow]")
         console.print("-" * 40)
 
         if len(result.changed_rows) == 0:
@@ -174,9 +171,7 @@ def _format_additions(result: ComparisonResult) -> str:
     console = Console(file=None, width=120)
 
     with console.capture() as capture:
-        console.print(
-            f"\n➕ [bold blue]Added Rows ({len(result.added_rows)})[/bold blue]"
-        )
+        console.print(f"\n➕ [bold blue]Added Rows ({len(result.added_rows)})[/bold blue]")
         console.print("-" * 40)
 
         _display_simple_table_to_console(
@@ -191,9 +186,7 @@ def _format_removals(result: ComparisonResult) -> str:
     console = Console(file=None, width=120)
 
     with console.capture() as capture:
-        console.print(
-            f"\n➖ [bold red]Removed Rows ({len(result.removed_rows)})[/bold red]"
-        )
+        console.print(f"\n➖ [bold red]Removed Rows ({len(result.removed_rows)})[/bold red]")
         console.print("-" * 40)
 
         _display_simple_table_to_console(
@@ -223,7 +216,7 @@ def _display_simple_table_to_console(
         row_data = []
         for col in df.columns:
             value = row[col]
-            if isinstance(value, (int, float)):
+            if isinstance(value, int | float):
                 row_data.append(_format_number(value))
             else:
                 row_data.append(str(value))
