@@ -1,7 +1,6 @@
 """CSV file analysis and dimension detection."""
 
 from pathlib import Path
-from typing import List
 
 import attrs
 import chardet
@@ -59,7 +58,7 @@ def load_dataframe(file_path: str, csv_info: CSVInfo) -> Result[pl.DataFrame, st
         return Failure(f"Could not load CSV file: {e}")
 
 
-def detect_dimensions(df: pl.DataFrame) -> Result[List[str], str]:
+def detect_dimensions(df: pl.DataFrame) -> Result[list[str], str]:
     """Detect dimension columns in DataFrame."""
     if df.shape[1] < 2:
         return Failure("DataFrame must have at least 2 columns")
@@ -67,9 +66,7 @@ def detect_dimensions(df: pl.DataFrame) -> Result[List[str], str]:
     # All columns except last are dimensions
     dimension_columns = df.columns[:-1]
 
-    return _validate_dimensions(df, dimension_columns).bind(
-        lambda _: Success(dimension_columns)
-    )
+    return _validate_dimensions(df, dimension_columns).bind(lambda _: Success(dimension_columns))
 
 
 # Private helper functions
@@ -92,7 +89,7 @@ def _detect_encoding(path: Path) -> Result[str, str]:
         return Failure(f"Could not detect encoding: {e}")
 
 
-def _read_sample_lines(path: Path, encoding: str) -> Result[tuple[str, List[str]], str]:
+def _read_sample_lines(path: Path, encoding: str) -> Result[tuple[str, list[str]], str]:
     """Read sample lines for analysis (I/O operation)."""
     try:
         with path.open("r", encoding=encoding) as f:
@@ -102,9 +99,7 @@ def _read_sample_lines(path: Path, encoding: str) -> Result[tuple[str, List[str]
         return Failure(f"Could not read file: {e}")
 
 
-def _analyze_csv_structure(
-    path: Path, encoding: str, lines: List[str]
-) -> Result[CSVInfo, str]:
+def _analyze_csv_structure(path: Path, encoding: str, lines: list[str]) -> Result[CSVInfo, str]:
     """Analyze CSV structure from sample lines."""
     skip_rows = _count_page_selector_lines(lines)
     data_lines = lines[skip_rows:]
@@ -128,7 +123,7 @@ def _analyze_csv_structure(
     )
 
 
-def _count_page_selector_lines(lines: List[str]) -> int:
+def _count_page_selector_lines(lines: list[str]) -> int:
     """Count Anaplan page selector lines to skip."""
     skip_count = 0
     for line in lines:
@@ -139,7 +134,7 @@ def _count_page_selector_lines(lines: List[str]) -> int:
     return skip_count
 
 
-def _detect_delimiter(lines: List[str]) -> str:
+def _detect_delimiter(lines: list[str]) -> str:
     """Detect CSV delimiter from sample lines."""
     if not lines:
         return ","
@@ -155,7 +150,7 @@ def _detect_delimiter(lines: List[str]) -> str:
     return ","
 
 
-def _has_header(lines: List[str], delimiter: str) -> bool:
+def _has_header(lines: list[str], delimiter: str) -> bool:
     """Determine if first data line is a header."""
     if len(lines) < 2:
         return True
@@ -211,9 +206,7 @@ def _detect_format_type(
         return Failure(f"Could not read CSV file: {e}")
 
 
-def _validate_dimensions(
-    df: pl.DataFrame, dimension_columns: List[str]
-) -> Result[None, str]:
+def _validate_dimensions(df: pl.DataFrame, dimension_columns: list[str]) -> Result[None, str]:
     """Validate that columns are suitable as dimensions."""
     for col in dimension_columns:
         col_data = df.select(pl.col(col)).to_series()

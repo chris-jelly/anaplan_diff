@@ -1,7 +1,5 @@
 """Comparison logic for CSV data."""
 
-from typing import List, Optional
-
 import attrs
 import polars as pl
 from returns.result import Failure, Result, Success
@@ -24,11 +22,11 @@ class ComparisonResult:
     changed_rows: pl.DataFrame
     added_rows: pl.DataFrame
     removed_rows: pl.DataFrame
-    dimension_columns: List[str]
-    measure_columns: List[str]
+    dimension_columns: list[str]
+    measure_columns: list[str]
     total_baseline: int
     total_comparison: int
-    format_type: Optional[AnaplanFormat] = None
+    format_type: AnaplanFormat | None = None
 
     @property
     def has_changes(self) -> bool:
@@ -48,8 +46,8 @@ class ComparisonResult:
 def compare_dataframes(
     baseline_df: pl.DataFrame,
     comparison_df: pl.DataFrame,
-    dimension_columns: List[str],
-    format_type: Optional[AnaplanFormat] = None,
+    dimension_columns: list[str],
+    format_type: AnaplanFormat | None = None,
     comparison_tolerance: float = 1e-10,
 ) -> Result[ComparisonResult, str]:
     """Compare two DataFrames and identify changes."""
@@ -70,7 +68,7 @@ def compare_dataframes(
 def _validate_dataframes(
     baseline_df: pl.DataFrame,
     comparison_df: pl.DataFrame,
-    dimension_columns: List[str],
+    dimension_columns: list[str],
 ) -> Result[None, str]:
     """Validate DataFrames have compatible structure."""
     if not dimension_columns:
@@ -101,8 +99,8 @@ def _validate_dataframes(
 def _perform_comparison(
     baseline_df: pl.DataFrame,
     comparison_df: pl.DataFrame,
-    dimension_columns: List[str],
-    format_type: Optional[AnaplanFormat],
+    dimension_columns: list[str],
+    format_type: AnaplanFormat | None,
     comparison_tolerance: float,
 ) -> Result[ComparisonResult, str]:
     """Perform the actual comparison."""
@@ -157,7 +155,7 @@ def _perform_comparison(
         return Failure(f"Comparison failed: {e}")
 
 
-def _add_composite_key(df: pl.DataFrame, dimension_columns: List[str]) -> pl.DataFrame:
+def _add_composite_key(df: pl.DataFrame, dimension_columns: list[str]) -> pl.DataFrame:
     """Add composite key column."""
     key_expr = pl.concat_str(
         [pl.col(col).cast(pl.Utf8) for col in dimension_columns], separator="||"
@@ -168,8 +166,8 @@ def _add_composite_key(df: pl.DataFrame, dimension_columns: List[str]) -> pl.Dat
 def _find_unchanged_rows(
     baseline_df: pl.DataFrame,
     comparison_df: pl.DataFrame,
-    dimension_columns: List[str],
-    measure_columns: List[str],
+    dimension_columns: list[str],
+    measure_columns: list[str],
     comparison_tolerance: float,
 ) -> pl.DataFrame:
     """Find unchanged rows."""
@@ -200,8 +198,8 @@ def _find_unchanged_rows(
 def _find_changed_rows(
     baseline_df: pl.DataFrame,
     comparison_df: pl.DataFrame,
-    dimension_columns: List[str],
-    measure_columns: List[str],
+    dimension_columns: list[str],
+    measure_columns: list[str],
     comparison_tolerance: float,
 ) -> pl.DataFrame:
     """Find changed rows."""
@@ -252,7 +250,7 @@ def _find_changed_rows(
 def _find_added_rows(
     baseline_df: pl.DataFrame,
     comparison_df: pl.DataFrame,
-    dimension_columns: List[str],
+    dimension_columns: list[str],
 ) -> pl.DataFrame:
     """Find added rows."""
     added = comparison_df.join(
@@ -265,7 +263,7 @@ def _find_added_rows(
 def _find_removed_rows(
     baseline_df: pl.DataFrame,
     comparison_df: pl.DataFrame,
-    dimension_columns: List[str],
+    dimension_columns: list[str],
 ) -> pl.DataFrame:
     """Find removed rows."""
     removed = baseline_df.join(

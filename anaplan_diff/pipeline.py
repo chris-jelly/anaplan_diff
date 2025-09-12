@@ -1,7 +1,6 @@
 """Pipeline for CSV comparison operations."""
 
 from pathlib import Path
-from typing import List
 
 import polars as pl
 from returns.result import Failure, Result, Success
@@ -10,9 +9,7 @@ from .comparator import ComparisonResult, compare_dataframes
 from .detector import CSVInfo, analyze_file, detect_dimensions, load_dataframe
 
 
-def validate_file_paths(
-    baseline_path: str, comparison_path: str
-) -> Result[tuple[Path, Path], str]:
+def validate_file_paths(baseline_path: str, comparison_path: str) -> Result[tuple[Path, Path], str]:
     """Validate that both file paths exist."""
     baseline = Path(baseline_path)
     comparison = Path(comparison_path)
@@ -58,7 +55,7 @@ def load_csv_dataframes(
 
 def detect_comparison_dimensions(
     dataframes: tuple[pl.DataFrame, pl.DataFrame],
-) -> Result[tuple[pl.DataFrame, pl.DataFrame, List[str]], str]:
+) -> Result[tuple[pl.DataFrame, pl.DataFrame, list[str]], str]:
     """Detect dimension columns from the baseline DataFrame."""
     baseline_df, comparison_df = dataframes
 
@@ -68,7 +65,7 @@ def detect_comparison_dimensions(
 
 
 def execute_comparison(
-    data: tuple[pl.DataFrame, pl.DataFrame, List[str]],
+    data: tuple[pl.DataFrame, pl.DataFrame, list[str]],
 ) -> Result[ComparisonResult, str]:
     """Execute the DataFrame comparison."""
     baseline_df, comparison_df, dimension_columns = data
@@ -82,9 +79,7 @@ def analyze_and_load_files(
     paths: tuple[Path, Path],
 ) -> Result[tuple[pl.DataFrame, pl.DataFrame], str]:
     """Analyze file formats and load DataFrames (helper for pipeline)."""
-    return analyze_csv_files(paths).bind(
-        lambda infos: load_csv_dataframes(infos, paths)
-    )
+    return analyze_csv_files(paths).bind(lambda infos: load_csv_dataframes(infos, paths))
 
 
 def run_csv_diff_pipeline(
