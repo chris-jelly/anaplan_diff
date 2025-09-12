@@ -6,7 +6,13 @@ from typing import Annotated
 import typer
 from returns.result import Failure, Success
 
-from .formatter import TerminalFormatter
+from rich.console import Console
+
+from .formatter import (
+    display_comparison_results,
+    print_error_message,
+    print_progress_message,
+)
 from .pipeline import run_csv_diff_pipeline
 
 app = typer.Typer(help="Compare two CSV exports from Anaplan and show changes")
@@ -20,13 +26,13 @@ def diff(
     ],
 ) -> None:
     """Compare two CSV files and display the differences."""
-    formatter = TerminalFormatter()
+    console = Console()
 
     # Progress indicators (side effects)
-    formatter.console.print("🔍 Analyzing CSV files...")
-    formatter.console.print("📊 Loading data...")
-    formatter.console.print("🔎 Detecting dimensions...")
-    formatter.console.print("⚖️  Comparing data...")
+    print_progress_message(console, "🔍 Analyzing CSV files...")
+    print_progress_message(console, "📊 Loading data...")
+    print_progress_message(console, "🔎 Detecting dimensions...")
+    print_progress_message(console, "⚖️  Comparing data...")
 
     # Execute pipeline
     result = run_csv_diff_pipeline(str(baseline), str(comparison))
@@ -34,12 +40,13 @@ def diff(
     # Handle result (I/O operation)
     match result:
         case Success(comparison_result):
-            formatter.console.print(
-                f"Detected dimensions: {', '.join(comparison_result.dimension_columns)}"
+            print_progress_message(
+                console,
+                f"Detected dimensions: {', '.join(comparison_result.dimension_columns)}",
             )
-            formatter.format_results(comparison_result)
+            display_comparison_results(console, comparison_result)
         case Failure(error_message):
-            formatter.print_error(error_message)
+            print_error_message(console, error_message)
             raise typer.Exit(1)
 
 
