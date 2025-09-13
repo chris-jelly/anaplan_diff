@@ -177,7 +177,14 @@ def _find_unchanged_rows(
                 pl.col(measure) - pl.col(measure_comparison)
             ).abs() < comparison_tolerance
         else:
-            condition = pl.col(measure) == pl.col(measure_comparison)
+            # Handle null values properly for non-numeric comparison
+            condition = (
+                pl.col(measure).is_null() & pl.col(measure_comparison).is_null()
+            ) | (
+                pl.col(measure).is_not_null()
+                & pl.col(measure_comparison).is_not_null()
+                & (pl.col(measure) == pl.col(measure_comparison))
+            )
         equality_conditions.append(condition)
 
     if equality_conditions:
@@ -209,7 +216,16 @@ def _find_changed_rows(
                 pl.col(measure) - pl.col(measure_comparison)
             ).abs() >= comparison_tolerance
         else:
-            condition = pl.col(measure) != pl.col(measure_comparison)
+            # Handle null values properly for non-numeric comparison
+            condition = ~(
+                (
+                    pl.col(measure).is_null() & pl.col(measure_comparison).is_null()
+                ) | (
+                    pl.col(measure).is_not_null()
+                    & pl.col(measure_comparison).is_not_null()
+                    & (pl.col(measure) == pl.col(measure_comparison))
+                )
+            )
         difference_conditions.append(condition)
 
     if difference_conditions:
