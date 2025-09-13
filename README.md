@@ -114,6 +114,31 @@ Detected dimensions: Line_Item, Region, Product
 
 The tool automatically detects that `Line_Item`, `Region` and `Product` are dimension columns (used for matching rows), while `Value` is the measure column (compared for changes).
 
+## Data Type Support
+
+The tool supports **all data types** in any column:
+
+- **Numeric measures**: Shows change amounts and percentages (e.g., `1000 → 1200, +200, +20%`)
+- **String measures**: Shows before/after values (e.g., `"Complete" → "In Progress"`)
+- **Boolean measures**: Shows true/false changes (e.g., `True → False`)
+- **Mixed data types**: Dimensions can be any combination of text, numbers, booleans, dates
+
+### Non-Numeric Examples
+
+**Status tracking:**
+```csv
+LineItem,Region,Status
+Project A,North,Complete
+Project B,South,In Progress
+```
+
+**Boolean flags:**
+```csv
+LineItem,Category,IsActive
+Feature A,Core,True
+Feature B,Optional,False
+```
+
 ## Development
 
 ```bash

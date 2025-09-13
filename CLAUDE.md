@@ -45,18 +45,21 @@ The tool follows a pipeline architecture with these key components:
 
 ### 1. File Analysis (`anaplan_diff/detector.py`)
 - **CSVInfo dataclass**: Stores detected encoding, delimiter, header info ✅ Defined
-- **FileAnalyzer class**: Auto-detects CSV format parameters ⚠️ TODO
-- Handles Anaplan-specific formats (page selector lines, BOM, various encodings) ⚠️ TODO
+- **FileAnalyzer class**: Auto-detects CSV format parameters ✅ Implemented
+- Handles Anaplan-specific formats (page selector lines, BOM, various encodings) ✅ Implemented
+- **Data Type Support**: Accepts any data type in all columns (strings, booleans, numbers) ✅ Implemented
 
 ### 2. Dimension Detection (`anaplan_diff/detector.py`)
-- **DimensionDetector class**: Uses heuristics to identify dimension columns ⚠️ TODO
-- Logic: Text columns, low-cardinality numerics, Anaplan keyword patterns ⚠️ TODO
-- Critical for proper comparison grouping ⚠️ TODO
+- **Position-based detection**: Uses Tabular Single Column format structure ✅ Implemented
+- Logic: All columns except last are dimensions (data type independent) ✅ Implemented
+- Supports all data types in dimension columns (text, numbers, booleans) ✅ Implemented
+- Critical for proper comparison grouping ✅ Implemented
 
 ### 3. Comparison Engine (`anaplan_diff/comparator.py`)
 - **ComparisonResult dataclass**: Structured diff results ✅ Defined
-- **DataComparator class**: Core comparison logic using polars merge operations ⚠️ TODO
-- Identifies unchanged, changed, added, and removed rows based on dimension keys ⚠️ TODO
+- **Functional comparison**: Core comparison logic using polars merge operations ✅ Implemented
+- Identifies unchanged, changed, added, and removed rows based on dimension keys ✅ Implemented
+- **Smart data type handling**: Numeric measures get change/percentage, non-numeric get before/after ✅ Implemented
 
 ### 4. Terminal Output (`anaplan_diff/formatter.py`)
 - **TerminalFormatter class**: Basic error/success printing ✅ Partial
