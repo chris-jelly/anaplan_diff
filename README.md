@@ -45,20 +45,28 @@ Here's what you can expect when running the tool on typical Anaplan CSV exports:
 
 **examples/baseline.csv**
 ```csv
-Region,Product,Sales,Quantity
-North,Widget A,1000,10
-South,Widget B,2000,20
-East,Widget C,1500,15
-West,Widget D,3000,30
+Line_Item,Region,Product,Value
+Revenue,North,Widget A,1000
+Revenue,South,Widget B,2000
+Revenue,East,Widget C,1500
+Revenue,West,Widget D,3000
+Costs,North,Widget A,300
+Costs,South,Widget B,600
+Costs,East,Widget C,450
+Costs,West,Widget D,900
 ```
 
 **examples/comparison.csv**
 ```csv
-Region,Product,Sales,Quantity
-North,Widget A,1200,10
-South,Widget B,2000,25
-West,Widget D,3000,30
-Central,Widget E,2500,25
+Line_Item,Region,Product,Value
+Revenue,North,Widget A,1200
+Revenue,South,Widget B,2000
+Revenue,West,Widget D,3000
+Revenue,Central,Widget E,2500
+Costs,North,Widget A,350
+Costs,South,Widget B,600
+Costs,West,Widget D,900
+Costs,Central,Widget E,750
 ```
 
 ### Command
@@ -72,38 +80,39 @@ anaplan-diff examples/baseline.csv examples/comparison.csv
 📊 Loading data...
 🔎 Detecting dimensions...
 ⚖️  Comparing data...
-Detected dimensions: Region, Product, Sales
+Detected dimensions: Line_Item, Region, Product
 
 📊 Comparison Summary
 ========================================
-  Total Baseline:      4  
-  Total Comparison:    4  
-  Unchanged:           1  
-  Changed:             1  
+  Total Baseline:      8  
+  Total Comparison:    8  
+  Unchanged:           6  
+  Changed:             2  
   Added:               2  
   Removed:             2  
 
-🔄 Changed Rows (1)
+🔄 Changed Rows (2)
 ----------------------------------------
- Region  Product   Sales  Baseline  Comparison  Change  Change % 
- South   Widget B  2000      20.00       25.00    5.00     25.0% 
+ Line_Item  Region  Product   Baseline  Comparison  Change  Change %
+ Revenue    North   Widget A  1000.00   1200.00     200.00  20.0%
+ Costs      North   Widget A   300.00    350.00      50.00  16.7%
 
 ➕ Added Rows (2)
 ----------------------------------------
- Region   Product   Sales    Quantity 
- North    Widget A  1,200.0  10.00    
- Central  Widget E  2,500.0  25.00    
+ Line_Item  Region   Product   Value
+ Revenue    Central  Widget E  2500.0
+ Costs      Central  Widget E   750.0
 
 ➖ Removed Rows (2)
 ----------------------------------------
- Region  Product   Sales    Quantity 
- North   Widget A  1,000.0  10.00    
- East    Widget C  1,500.0  15.00    
+ Line_Item  Region  Product   Value  
+ Revenue    East    Widget C  1500.0
+ Costs      East    Widget C   450.0
 
-⚠️  5 differences found
+⚠️  4 differences found
 ```
 
-The tool automatically detects that `Region` and `Product` are dimension columns (used for matching rows), while `Sales` and `Quantity` are measure columns (compared for changes).
+The tool automatically detects that `Line_Item`, `Region` and `Product` are dimension columns (used for matching rows), while `Value` is the measure column (compared for changes).
 
 ## Development
 
