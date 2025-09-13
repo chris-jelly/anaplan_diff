@@ -200,8 +200,7 @@ def _detect_format_type(
     """
     Detect if file matches Tabular Single Column format.
 
-    Validates that the last column contains numeric values (measures),
-    which is required for the guaranteed structure.
+    Validates basic file structure - any data type is supported in all columns.
     """
     try:
         df = pl.read_csv(
@@ -216,15 +215,7 @@ def _detect_format_type(
         if df.shape[1] < 2:
             return Failure("File must have at least 2 columns")
 
-        # Try to convert last column to numeric
-        last_col = df.columns[-1]
-        last_col_data = df.select(pl.col(last_col)).to_series()
-
-        try:
-            last_col_data.cast(pl.Float64)
-            return Success("tabular_single_column")
-        except Exception:
-            return Failure("Last column must contain numeric values")
+        return Success("tabular_single_column")
 
     except Exception as e:
         return Failure(f"Could not read CSV file: {e}")
