@@ -1,5 +1,9 @@
-Region,Product,Sales,Quantity
-North,Widget A,1200,10
-South,Widget B,2000,25
-West,Widget D,3000,30
-Central,Widget E,2500,25
+Line_Item,Region,Product,Value
+Revenue,North,Widget A,1200
+Revenue,South,Widget B,2000
+Revenue,West,Widget D,3000
+Revenue,Central,Widget E,2500
+Costs,North,Widget A,350
+Costs,South,Widget B,600
+Costs,West,Widget D,900
+Costs,Central,Widget E,750
