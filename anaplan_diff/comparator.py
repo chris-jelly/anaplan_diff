@@ -225,15 +225,21 @@ def _find_changed_rows(
         result_columns = dimension_columns + [
             pl.col(measure).alias("baseline_value"),
             pl.col(measure_comparison).alias("comparison_value"),
-            (pl.col(measure_comparison) - pl.col(measure)).alias("change"),
-            (
-                (pl.col(measure_comparison) - pl.col(measure))
-                / pl.when(pl.col(measure) != 0)
-                .then(pl.col(measure))
-                .otherwise(pl.lit(None))
-                * 100
-            ).alias("change_percent"),
         ]
+
+        # Only add change calculations for numeric columns
+        if changed[measure].dtype.is_numeric():
+            result_columns.extend([
+                (pl.col(measure_comparison) - pl.col(measure)).alias("change"),
+                (
+                    (pl.col(measure_comparison) - pl.col(measure))
+                    / pl.when(pl.col(measure) != 0)
+                    .then(pl.col(measure))
+                    .otherwise(pl.lit(None))
+                    * 100
+                ).alias("change_percent"),
+            ])
+
         return changed.select(result_columns)
 
     # For multi-measure, return simplified format
