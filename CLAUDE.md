@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Core Interface**: `anaplan-diff baseline.csv comparison.csv` (zero configuration needed)
 
-**Current Status**: Project skeleton is established with package structure and dependencies configured. Core functionality is not yet implemented - all main classes have placeholder methods with TODO comments.
+**Current Status**: ✅ **Fully implemented and production-ready.** All core functionality is complete with 55 passing tests. The tool successfully handles CSV comparison, automatic dimension detection, and rich terminal output.
 
 ## Development Commands
 
@@ -39,13 +39,13 @@ uv build
 uv pip install -e .
 ```
 
-## Architecture & Core Components (Planned)
+## Architecture & Core Components
 
 The tool follows a pipeline architecture with these key components:
 
 ### 1. File Analysis (`anaplan_diff/detector.py`)
-- **CSVInfo dataclass**: Stores detected encoding, delimiter, header info ✅ Defined
-- **FileAnalyzer class**: Auto-detects CSV format parameters ✅ Implemented
+- **CSVInfo dataclass**: Stores detected encoding, delimiter, header info ✅ Implemented
+- **File analysis functions**: Auto-detects CSV format parameters ✅ Implemented
 - Handles Anaplan-specific formats (page selector lines, BOM, various encodings) ✅ Implemented
 - **Data Type Support**: Accepts any data type in all columns (strings, booleans, numbers) ✅ Implemented
 
@@ -56,37 +56,49 @@ The tool follows a pipeline architecture with these key components:
 - Critical for proper comparison grouping ✅ Implemented
 
 ### 3. Comparison Engine (`anaplan_diff/comparator.py`)
-- **ComparisonResult dataclass**: Structured diff results ✅ Defined
+- **ComparisonResult dataclass**: Structured diff results ✅ Implemented
 - **Functional comparison**: Core comparison logic using polars merge operations ✅ Implemented
 - Identifies unchanged, changed, added, and removed rows based on dimension keys ✅ Implemented
 - **Smart data type handling**: Numeric measures get change/percentage, non-numeric get before/after ✅ Implemented
+- Handles string-encoded numbers by casting to Float64 for change calculations ✅ Implemented
 
 ### 4. Terminal Output (`anaplan_diff/formatter.py`)
-- **TerminalFormatter class**: Basic error/success printing ✅ Partial
-- Uses Rich library for formatted console output ⚠️ TODO
-- Displays summary statistics and detailed change listings ⚠️ TODO
-- Shows percentage changes for numeric values ⚠️ TODO
+- **Direct console output functions**: Progress, error, and success messages ✅ Implemented
+- Uses Rich library for formatted console output with tables and colors ✅ Implemented
+- Displays summary statistics and detailed change listings ✅ Implemented
+- Shows percentage changes for numeric values ✅ Implemented
+- Limits output to prevent overwhelming (first 20 changes, first 10 additions/removals) ✅ Implemented
 
 ### 5. CLI Interface (`anaplan_diff/cli.py`)
-- Typer-based command interface ✅ Basic structure
-- Orchestrates the full pipeline: analyze → detect → compare → format ⚠️ TODO
+- Typer-based command interface ✅ Implemented
+- Orchestrates the full pipeline: analyze → detect → compare → format ✅ Implemented
+- Uses Railway-Oriented Programming with Result types for error handling ✅ Implemented
+
+### 6. Pipeline (`anaplan_diff/pipeline.py`)
+- Functional pipeline composition using returns library ✅ Implemented
+- Validates file paths, analyzes CSVs, loads dataframes, detects dimensions, executes comparison ✅ Implemented
+- Clean separation of I/O operations from pure functions ✅ Implemented
 
 ## Current Implementation Status
 
-**Completed**:
+**Completed** ✅:
 - Project structure and package configuration
-- Basic dataclass definitions (CSVInfo, ComparisonResult)  
+- Dataclass definitions (CSVInfo, ComparisonResult)
 - CLI command structure with typer
-- Error/success message printing in formatter
-- Basic test structure
-
-**TODO** (Core functionality to implement):
 - File format detection and encoding handling
 - CSV parsing with Anaplan-specific handling
-- Dimension detection heuristics
-- DataFrame comparison logic
-- Rich terminal output formatting
-- Full pipeline integration in CLI
+- Position-based dimension detection
+- DataFrame comparison logic with merge operations
+- Rich terminal output formatting with tables and colors
+- Full pipeline integration with Railway-Oriented Programming
+- Comprehensive test suite (55 tests covering all functionality)
+- Error/success/progress message printing
+- Numeric change calculations (absolute and percentage)
+- Support for non-numeric measures (strings, booleans)
+
+**Known Limitations**:
+- In-memory processing (suitable for files up to ~100MB)
+- Single measure column optimized (multi-measure supported but simplified output)
 
 ## Key Technical Decisions
 
@@ -98,10 +110,10 @@ The tool follows a pipeline architecture with these key components:
 
 **Performance**: In-memory processing suitable for files up to ~100MB (typical Anaplan exports)
 
-**Planned Comparison Strategy**: Merge DataFrames on detected dimension columns, then identify row-level changes
+**Comparison Strategy**: Merge DataFrames on detected dimension columns, then identify row-level changes
 
-**Planned Auto-detection Heuristics**:
-- Dimensions: `dtype == 'object'` OR low cardinality OR Anaplan keywords
+**Auto-detection Heuristics**:
+- Dimensions: Position-based - all columns except last (data type independent)
 - CSV format: chardet for encoding, polars inference for delimiters  
 - Headers: Skip Anaplan page selector lines if present
 

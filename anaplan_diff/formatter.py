@@ -123,13 +123,32 @@ def _display_changes_direct(console: Console, result: ComparisonResult) -> None:
         # Add baseline/comparison values
         baseline_val = row["baseline_value"]
         comparison_val = row["comparison_value"]
-        change_val = row["change"]
-        change_pct = row["change_percent"]
 
-        row_data.append(_format_number(baseline_val))
-        row_data.append(_format_number(comparison_val))
-        row_data.append(_format_number(change_val))
-        row_data.append(f"{change_pct:.1f}%" if change_pct is not None else "N/A")
+        # Check if change columns exist (only for numeric values)
+        change_val = row.get("change")
+        change_pct = row.get("change_percent")
+
+        row_data.append(
+            _format_number(baseline_val)
+            if isinstance(baseline_val, (int, float))
+            else str(baseline_val)
+        )
+        row_data.append(
+            _format_number(comparison_val)
+            if isinstance(comparison_val, (int, float))
+            else str(comparison_val)
+        )
+
+        # Display change values - check if they exist and are valid numbers
+        if change_val is not None and isinstance(change_val, (int, float)):
+            row_data.append(_format_number(change_val))
+        else:
+            row_data.append("-")
+
+        if change_pct is not None and isinstance(change_pct, (int, float)):
+            row_data.append(f"{change_pct:.1f}%")
+        else:
+            row_data.append("-")
 
         table.add_row(*row_data)
 

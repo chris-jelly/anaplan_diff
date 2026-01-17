@@ -1,4 +1,4 @@
-Line_Item,Region,Product,Value
+Line Item,Region,Product,Value
 Revenue,North,Widget A,1000
 Revenue,South,Widget B,2000
 Revenue,East,Widget C,1500
@@ -7,3 +7,7 @@ Costs,North,Widget A,300
 Costs,South,Widget B,600
 Costs,East,Widget C,450
 Costs,West,Widget D,900
+Project Status,North,Widget A,Complete
+Project Status,South,Widget B,In Progress
+Feature Active,North,Widget A,True
+Feature Active,South,Widget B,False
