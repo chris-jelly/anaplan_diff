@@ -45,7 +45,7 @@ Here's what you can expect when running the tool on typical Anaplan CSV exports:
 
 **examples/baseline.csv**
 ```csv
-Line_Item,Region,Product,Value
+Line Item,Region,Product,Value
 Revenue,North,Widget A,1000
 Revenue,South,Widget B,2000
 Revenue,East,Widget C,1500
@@ -54,11 +54,15 @@ Costs,North,Widget A,300
 Costs,South,Widget B,600
 Costs,East,Widget C,450
 Costs,West,Widget D,900
+Project Status,North,Widget A,Complete
+Project Status,South,Widget B,In Progress
+Feature Active,North,Widget A,True
+Feature Active,South,Widget B,False
 ```
 
 **examples/comparison.csv**
 ```csv
-Line_Item,Region,Product,Value
+Line Item,Region,Product,Value
 Revenue,North,Widget A,1200
 Revenue,South,Widget B,2000
 Revenue,West,Widget D,3000
@@ -67,6 +71,10 @@ Costs,North,Widget A,350
 Costs,South,Widget B,600
 Costs,West,Widget D,900
 Costs,Central,Widget E,750
+Project Status,North,Widget A,In Progress
+Project Status,Central,Widget E,Complete
+Feature Active,North,Widget A,False
+Feature Active,Central,Widget E,True
 ```
 
 ### Command
@@ -80,39 +88,45 @@ anaplan-diff examples/baseline.csv examples/comparison.csv
 📊 Loading data...
 🔎 Detecting dimensions...
 ⚖️  Comparing data...
-Detected dimensions: Line_Item, Region, Product
+Detected dimensions: Line Item, Region, Product
 
 📊 Comparison Summary
 ========================================
-  Total Baseline:      8  
-  Total Comparison:    8  
-  Unchanged:           6  
-  Changed:             2  
-  Added:               2  
-  Removed:             2  
+  Total Baseline:      12  
+  Total Comparison:    12  
+  Unchanged:           4  
+  Changed:             4  
+  Added:               4  
+  Removed:             4  
 
-🔄 Changed Rows (2)
+🔄 Changed Rows (4)
 ----------------------------------------
- Line_Item  Region  Product   Baseline  Comparison  Change  Change %
- Revenue    North   Widget A  1000.00   1200.00     200.00  20.0%
- Costs      North   Widget A   300.00    350.00      50.00  16.7%
+ Line Item       Region  Product   Baseline   Comparison  Change  Change % 
+ Revenue         North   Widget A      1000         1200  200.00     20.0% 
+ Costs           North   Widget A       300          350   50.00     16.7% 
+ Project Status  North   Widget A  Complete  In Progress       -         - 
+ Feature Active  North   Widget A      True        False       -         - 
 
-➕ Added Rows (2)
+➕ Added Rows (4)
 ----------------------------------------
- Line_Item  Region   Product   Value
- Revenue    Central  Widget E  2500.0
- Costs      Central  Widget E   750.0
+ Line Item       Region   Product   Value    
+ Revenue         Central  Widget E  2500     
+ Costs           Central  Widget E  750      
+ Project Status  Central  Widget E  Complete 
+ Feature Active  Central  Widget E  True     
 
-➖ Removed Rows (2)
+➖ Removed Rows (4)
 ----------------------------------------
- Line_Item  Region  Product   Value  
- Revenue    East    Widget C  1500.0
- Costs      East    Widget C   450.0
+ Line Item       Region  Product   Value       
+ Revenue         East    Widget C  1500        
+ Costs           East    Widget C  450         
+ Project Status  South   Widget B  In Progress 
+ Feature Active  South   Widget B  False       
 
-⚠️  4 differences found
+⚠️  12 differences found
 ```
 
-The tool automatically detects that `Line_Item`, `Region` and `Product` are dimension columns (used for matching rows), while `Value` is the measure column (compared for changes).
+The tool automatically detects that `Line Item`, `Region` and `Product` are dimension columns (used for matching rows), while `Value` is the measure column (compared for changes).
 
 ## Data Type Support
 
@@ -122,22 +136,6 @@ The tool supports **all data types** in any column:
 - **String measures**: Shows before/after values (e.g., `"Complete" → "In Progress"`)
 - **Boolean measures**: Shows true/false changes (e.g., `True → False`)
 - **Mixed data types**: Dimensions can be any combination of text, numbers, booleans, dates
-
-### Non-Numeric Examples
-
-**Status tracking:**
-```csv
-LineItem,Region,Status
-Project A,North,Complete
-Project B,South,In Progress
-```
-
-**Boolean flags:**
-```csv
-LineItem,Category,IsActive
-Feature A,Core,True
-Feature B,Optional,False
-```
 
 ## Development
 

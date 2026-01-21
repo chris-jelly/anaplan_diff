@@ -218,9 +218,8 @@ def _find_changed_rows(
         else:
             # Handle null values properly for non-numeric comparison
             condition = ~(
-                (
-                    pl.col(measure).is_null() & pl.col(measure_comparison).is_null()
-                ) | (
+                (pl.col(measure).is_null() & pl.col(measure_comparison).is_null())
+                | (
                     pl.col(measure).is_not_null()
                     & pl.col(measure_comparison).is_not_null()
                     & (pl.col(measure) == pl.col(measure_comparison))
@@ -238,23 +237,68 @@ def _find_changed_rows(
         measure = measure_columns[0]
         measure_comparison = f"{measure}_comparison"
 
+        # Check if column is actually numeric (not boolean)
+        # Booleans should be treated as categorical, not numeric
+        is_numeric = (
+            changed[measure].dtype.is_numeric() and changed[measure].dtype != pl.Boolean
+        )
+
+        # If not directly numeric, try to cast string columns to numeric
+        if not is_numeric and changed[measure].dtype == pl.Utf8:
+            try:
+                # Try to cast to numeric - if successful, treat as numeric
+                baseline_numeric = changed.select(
+                    pl.col(measure).cast(pl.Float64, strict=False)
+                )
+                comparison_numeric = changed.select(
+                    pl.col(measure_comparison).cast(pl.Float64, strict=False)
+                )
+
+                # Check if any values successfully converted to numeric
+                is_numeric = (
+                    baseline_numeric.select(pl.col(measure).is_not_null())
+                    .to_series()
+                    .any()
+                    and comparison_numeric.select(
+                        pl.col(measure_comparison).is_not_null()
+                    )
+                    .to_series()
+                    .any()
+                )
+            except Exception:
+                is_numeric = False
+
         result_columns = dimension_columns + [
             pl.col(measure).alias("baseline_value"),
             pl.col(measure_comparison).alias("comparison_value"),
         ]
 
-        # Only add change calculations for numeric columns
-        if changed[measure].dtype.is_numeric():
-            result_columns.extend([
-                (pl.col(measure_comparison) - pl.col(measure)).alias("change"),
-                (
-                    (pl.col(measure_comparison) - pl.col(measure))
-                    / pl.when(pl.col(measure) != 0)
-                    .then(pl.col(measure))
-                    .otherwise(pl.lit(None))
-                    * 100
-                ).alias("change_percent"),
-            ])
+        # Add change calculations for numeric columns only
+        if is_numeric:
+            # Cast to float if needed (for string columns that contain numbers)
+            baseline_col = (
+                pl.col(measure).cast(pl.Float64, strict=False)
+                if changed[measure].dtype == pl.Utf8
+                else pl.col(measure)
+            )
+            comparison_col = (
+                pl.col(measure_comparison).cast(pl.Float64, strict=False)
+                if changed[measure_comparison].dtype == pl.Utf8
+                else pl.col(measure_comparison)
+            )
+
+            result_columns.extend(
+                [
+                    (comparison_col - baseline_col).alias("change"),
+                    (
+                        (comparison_col - baseline_col)
+                        / pl.when(baseline_col != 0)
+                        .then(baseline_col)
+                        .otherwise(pl.lit(None))
+                        * 100
+                    ).alias("change_percent"),
+                ]
+            )
 
         return changed.select(result_columns)
 
