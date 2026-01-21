@@ -8,7 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Core Interface**: `anaplan-diff baseline.csv comparison.csv` (zero configuration needed)
 
-**Current Status**: ✅ **Fully implemented and production-ready.** All core functionality is complete with 55 passing tests. The tool successfully handles CSV comparison, automatic dimension detection, and rich terminal output.
+**CSV Export**: `anaplan-diff baseline.csv comparison.csv --output results.csv` (optional CSV export)
+
+**Current Status**: ✅ **Fully implemented and production-ready.** All core functionality is complete with 64 passing tests. The tool successfully handles CSV comparison, automatic dimension detection, rich terminal output, and CSV export.
 
 ## Development Commands
 
@@ -62,17 +64,19 @@ The tool follows a pipeline architecture with these key components:
 - **Smart data type handling**: Numeric measures get change/percentage, non-numeric get before/after ✅ Implemented
 - Handles string-encoded numbers by casting to Float64 for change calculations ✅ Implemented
 
-### 4. Terminal Output (`anaplan_diff/formatter.py`)
+### 4. Terminal Output & Export (`anaplan_diff/formatter.py`)
 - **Direct console output functions**: Progress, error, and success messages ✅ Implemented
 - Uses Rich library for formatted console output with tables and colors ✅ Implemented
 - Displays summary statistics and detailed change listings ✅ Implemented
 - Shows percentage changes for numeric values ✅ Implemented
 - Limits output to prevent overwhelming (first 20 changes, first 10 additions/removals) ✅ Implemented
+- **CSV export function**: Exports all changes to a single CSV file with change_type tags ✅ Implemented
 
 ### 5. CLI Interface (`anaplan_diff/cli.py`)
 - Typer-based command interface ✅ Implemented
-- Orchestrates the full pipeline: analyze → detect → compare → format ✅ Implemented
+- Orchestrates the full pipeline: analyze → detect → compare → format → export ✅ Implemented
 - Uses Railway-Oriented Programming with Result types for error handling ✅ Implemented
+- Optional `--output/-o` flag for CSV export ✅ Implemented
 
 ### 6. Pipeline (`anaplan_diff/pipeline.py`)
 - Functional pipeline composition using returns library ✅ Implemented
@@ -91,10 +95,11 @@ The tool follows a pipeline architecture with these key components:
 - DataFrame comparison logic with merge operations
 - Rich terminal output formatting with tables and colors
 - Full pipeline integration with Railway-Oriented Programming
-- Comprehensive test suite (55 tests covering all functionality)
+- Comprehensive test suite (64 tests covering all functionality)
 - Error/success/progress message printing
 - Numeric change calculations (absolute and percentage)
 - Support for non-numeric measures (strings, booleans)
+- CSV export functionality with --output option
 
 **Known Limitations**:
 - In-memory processing (suitable for files up to ~100MB)

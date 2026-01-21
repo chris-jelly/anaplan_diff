@@ -2,6 +2,8 @@
 Terminal output formatting using Rich library.
 """
 
+import polars as pl
+from returns.result import Failure, Result, Success
 from rich.console import Console
 from rich.table import Table
 
@@ -225,3 +227,114 @@ def _display_simple_table_direct(
     if len(df) > max_rows:
         remaining = len(df) - max_rows
         console.print(f"\n[dim]... and {remaining} more rows[/dim]")
+
+
+def export_to_csv(result: ComparisonResult, output_path: str) -> Result[None, str]:
+    """
+    Export comparison results to a CSV file.
+
+    Creates a single CSV file with all changes, additions, and removals,
+    each tagged with a change_type column.
+    """
+    try:
+        # Build list of dataframes with change type tags
+        dfs_to_export = []
+
+        # Changed rows
+        if len(result.changed_rows) > 0:
+            changed_df = result.changed_rows.with_columns(
+                pl.lit("CHANGED").alias("change_type")
+            )
+            dfs_to_export.append(changed_df)
+
+        # Added rows
+        if len(result.added_rows) > 0:
+            # For added rows, we need to match the schema of changed rows
+            # Add placeholder columns for baseline values and changes
+            added_df = result.added_rows.with_columns(
+                pl.lit("ADDED").alias("change_type")
+            )
+
+            # If changed_rows has baseline/comparison/change columns, add placeholders
+            if (
+                len(result.changed_rows) > 0
+                and "baseline_value" in result.changed_rows.columns
+            ):
+                # Get the measure column name (the original column before _value suffix)
+                measure_col = (
+                    result.measure_columns[0] if result.measure_columns else None
+                )
+                if measure_col and measure_col in added_df.columns:
+                    added_df = added_df.rename({measure_col: "comparison_value"})
+                    added_df = added_df.with_columns(
+                        [
+                            pl.lit(None).alias("baseline_value"),
+                            pl.lit(None).alias("change"),
+                            pl.lit(None).alias("change_percent"),
+                        ]
+                    )
+
+            dfs_to_export.append(added_df)
+
+        # Removed rows
+        if len(result.removed_rows) > 0:
+            removed_df = result.removed_rows.with_columns(
+                pl.lit("REMOVED").alias("change_type")
+            )
+
+            # Match schema with changed rows if needed
+            if (
+                len(result.changed_rows) > 0
+                and "baseline_value" in result.changed_rows.columns
+            ):
+                measure_col = (
+                    result.measure_columns[0] if result.measure_columns else None
+                )
+                if measure_col and measure_col in removed_df.columns:
+                    removed_df = removed_df.rename({measure_col: "baseline_value"})
+                    removed_df = removed_df.with_columns(
+                        [
+                            pl.lit(None).alias("comparison_value"),
+                            pl.lit(None).alias("change"),
+                            pl.lit(None).alias("change_percent"),
+                        ]
+                    )
+
+            dfs_to_export.append(removed_df)
+
+        # Check if there's anything to export
+        if not dfs_to_export:
+            return Failure("No changes to export")
+
+        # Combine all dataframes
+        # If schemas don't match exactly, align them
+        if len(dfs_to_export) > 1:
+            # Get all unique columns
+            all_columns = set()
+            for df in dfs_to_export:
+                all_columns.update(df.columns)
+
+            # Align schemas by adding missing columns as nulls
+            aligned_dfs = []
+            for df in dfs_to_export:
+                for col in all_columns:
+                    if col not in df.columns:
+                        df = df.with_columns(pl.lit(None).alias(col))
+                # Reorder columns to match (dimension cols, then others, then change_type)
+                col_order = [c for c in df.columns if c != "change_type"] + [
+                    "change_type"
+                ]
+                df = df.select([c for c in col_order if c in df.columns])
+                aligned_dfs.append(df)
+
+            combined_df = pl.concat(aligned_dfs, how="diagonal")
+        else:
+            combined_df = dfs_to_export[0]
+
+        # Write to CSV
+        combined_df.write_csv(output_path)
+
+        return Success(None)
+
+    except Exception as e:
+        return Failure(f"Failed to write CSV: {e}")

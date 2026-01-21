@@ -10,8 +10,10 @@ from rich.console import Console
 
 from .formatter import (
     display_comparison_results,
+    export_to_csv,
     print_error_message,
     print_progress_message,
+    print_success_message,
 )
 from .pipeline import run_csv_diff_pipeline
 
@@ -24,6 +26,14 @@ def diff(
     comparison: Annotated[
         Path, typer.Argument(help="Path to the 'comparison' CSV file")
     ],
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            "--output",
+            "-o",
+            help="Path to export results as CSV (optional)",
+        ),
+    ] = None,
 ) -> None:
     """Compare two CSV files and display the differences."""
     console = Console()
@@ -45,6 +55,16 @@ def diff(
                 f"Detected dimensions: {', '.join(comparison_result.dimension_columns)}",
             )
             display_comparison_results(console, comparison_result)
+
+            # Export to CSV if output path is specified
+            if output:
+                export_result = export_to_csv(comparison_result, str(output))
+                match export_result:
+                    case Success(_):
+                        print_success_message(console, f"Results exported to {output}")
+                    case Failure(error_message):
+                        print_error_message(console, f"Export failed: {error_message}")
+                        raise typer.Exit(1)
         case Failure(error_message):
             print_error_message(console, error_message)
             raise typer.Exit(1)
