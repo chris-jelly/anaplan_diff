@@ -30,6 +30,10 @@ pip install -e .
 # Basic usage - compare two CSV files
 anaplan-diff baseline.csv comparison.csv
 
+# Export results to a CSV file
+anaplan-diff baseline.csv comparison.csv --output results.csv
+anaplan-diff baseline.csv comparison.csv -o results.csv
+
 # The tool will automatically:
 # - Detect CSV format and encoding
 # - Identify dimension columns
@@ -136,6 +140,27 @@ The tool supports **all data types** in any column:
 - **String measures**: Shows before/after values (e.g., `"Complete" → "In Progress"`)
 - **Boolean measures**: Shows true/false changes (e.g., `True → False`)
 - **Mixed data types**: Dimensions can be any combination of text, numbers, booleans, dates
+
+## CSV Export
+
+The tool can export comparison results to a CSV file using the `--output` or `-o` option:
+
+```bash
+anaplan-diff baseline.csv comparison.csv --output results.csv
+```
+
+The exported CSV file includes:
+- **All changes** in a single file with a `change_type` column indicating whether each row was `CHANGED`, `ADDED`, or `REMOVED`
+- **Dimension columns** to identify which rows changed
+- **Baseline and comparison values** for changed rows
+- **Change amounts and percentages** for numeric measures
+- **Before/after values** for non-numeric measures
+
+This is useful for:
+- Sharing results with stakeholders
+- Further analysis in Excel or other tools
+- Archiving comparison results
+- Integration with other workflows
 
 ## Development
 
